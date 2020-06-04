@@ -1,1 +1,162 @@
-# XL-AMR
+# Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
+
+Code for EMNLP 2020 Submission 1649. Confidential Link Copy. PLEASE DO NOT DISTRIBUTE.
+
+## 1. Install 
+
+Create a conda environment with **Python 3.6** and **PyTorch 1.5.0** and install the dependencies. [requirements.txt](requirements.txt).
+
+Via conda:
+
+    conda create -n xlamr python=3.6
+    source activate xlamr
+    pip install -r requirements.txt
+    
+
+## 2. Gold Dataset
+1 - Download AMR 2.0 ([LDC2017T10](https://catalog.ldc.upenn.edu/LDC2017T10)) and AMR 2.0 - Four Translations ([LDC2020T07](https://catalog.ldc.upenn.edu/LDC2020T07)).
+
+2 - Unzip the AMR 2.0 corpus to `data/AMR/LDC2017T10`. It should look like this:
+
+    (xlamr)$ tree data/AMR/LDC2017T10 -L 2 data/AMR/LDC2017T10
+    ├── data
+    │   ├── alignments
+    │   ├── amrs
+    │   └── frames
+    ├── docs
+    │   ├── AMR-alignment-format.txt
+    │   ├── amr-guidelines-v1.2.pdf
+    │   ├── file.tbl
+    │   ├── frameset.dtd
+    │   ├── PropBank-unification-notes.txt
+    │   └── README.txt
+    └── index.html
+    
+Prepare training/dev/test data:
+
+    ./scripts/prepare_data.sh -v 2 -p data/AMR/LDC2017T10
+    
+3 - Unzip the Translations corpus to `data/AMR/LDC2020T07` and copy ```*.txt``` files into ```data/amr_2.0/translations/```  .
+
+Project English test AMR graphs across languages:
+
+    ./scripts/project_test.sh 
+   
+    
+## 3. Silver dataset for {German, Italian, Spanish}
+
+#### 3.1 Annotation Projection through parallel sentences 
+These data make use of Europarl corpus [1]  and the English AMR parser by Zhang etal. 2019 [2] to parse the English side of the parallel corpus.
+
+Data used for training and development are found in the following folder: 
+ 
+    cd xl-amr/data/AMR/europarl_en_de_es_it/
+
+#### 3.2 Annotation Projection through automatic translations
+We machine translated sentences of AMR 2.0 using [OPUS-MT](https://huggingface.co/transformers/model_doc/marian.html) pretrained models and filtered less accurate translations. The translated sentences are found in the following folder: 
+
+    cd data/AMR/amr_2.0_de_es_it/translations/
+
+To respect the LDC agreement for AMR 2.0, we release the translations without the gold graphs. Therefore to project the AMR graphs from AMR 2.0 run:
+
+    ./scripts/project_train_dev.sh
+  
+
+#### ****AFTER THIS STEP, DATA COLLECTION IS COMPLETE AND WE CAN CONTINUE WITH THE PARSING PROCEDURES****
+
+
+## 4 Preprocessing
+
+#### 4.1 Lemmatization, PoS-tagging, NER:
+
+- For English we use [Stanford CoreNLP](https://stanfordnlp.github.io/CoreNLP/index.html) (version **3.9.2**). Before running the script, start a CoreNLP server following the [API documentation](https://stanfordnlp.github.io/CoreNLP/corenlp-server.html#api-documentation).
+
+        cd stanford-corenlp-full-2018-10-05
+        java -mx4g -cp "*" edu.stanford.nlp.pipeline StanfordCoreNLPServer -port 9000 -timeout 15000
+
+- For Italian we use [Tint](http://tint.fbk.eu/) (package **tint-runner-0.2-bin.tar.gz**). Before running the script, start a Tint server 
+
+       ./tools/tint/tint-server.sh -p 9200
+    
+- For German and Spanish we use [Stanza](https://stanfordnlp.github.io/stanza/). Before running the script, dowload the models.
+    
+        import stanza
+        stanza.download("de")
+        stanza.download("es")
+
+Run the script ```lang -> {en, de, es, it}``` and ```dataset_type -> {silver, gold}```:
+
+    ./scripts/annotate_features_multilingual.sh {data_dir} {lang} {dataset_type}
+
+        
+ 
+#### 4.2 Re-categorization and Anonymization
+
+To preprocess the training and dev data run: 
+
+    ./scripts/preprocess_multlingual.sh {data_dir} {dataset_type}
+
+```dataset_type -> {silver, gold}```
+
+To preprocess the test data run: 
+
+    ./scripts/preprocess_test_multilingual.sh
+    
+
+## 5. Training
+XL-AMR models are trained in one GeForce GTX TITAN X GPU.
+We provide the params ```.yaml``` files for all the models in the paper. 
+
+
+    python -u -m stog.commands.train params/{xl-amr_configuration}.yaml
+
+
+## 6. Prediction
+
+To evaluate the XL-AMR models run: 
+
+    ./scripts/predict_multilingual.sh {lang} {model_dir}
+    
+## 7. Postprocessing
+
+For postprocessing two steps are needed: 
+
+1 - Run wikification using **DBPedia Spotlight API** on the test sentences for each language. Before running the script, start a docker server (following the instructions here [spotlight-docker](https://github.com/dbpedia-spotlight/spotlight-docker)) for the the specific language model at ```{port}``` for example:
+
+    docker run -itd --restart unless-stopped -p 2230:80 dbpedia/spotlight-italian spotlight.sh
+   
+ 
+ then run:
+    
+    ./scripts/spotlight_dump.sh {lang} {port}
+    
+ ```lang -> {en, de, es, it}```
+       
+2 - Run postprocessing script:
+
+    ./postprocess_multilingual.sh {lang} {model_dir}
+    
+```lang -> {en, de, es, it}```
+
+## 8. Evaluation using [Smatch](https://github.com/snowblink14/smatch) and [Fine-Grained](https://github.com/mdtux89/amr-evaluation) metrics
+
+    ./compute_smatch.sh {lang} {model_dir}
+
+
+## References
+[1] Philipp Koehn. 2005. [Europarl: A Parallel Corpus for Statistical Machine  Translation](http://homepages.inf.ed.ac.uk/pkoehn/publications/europarl-mtsummit05.pdf). In Conference Proceedings: the tenth Machine Translation Summit, pages 79–86, Phuket, Thailand. AAMT, AAMT. 
+
+[2] Sheng Zhang, Xutai Ma, Kevin Duh, and Benjamin Van Durme. 2019. [AMR Parsing as Sequence-to-Graph Transduction](https://www.aclweb.org/anthology/P19-1009/). In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics, pages 80–94, Florence, Italy. Association for Computational Linguistics.
+## Acknowledgements
+
+We adopted modules or code snippets from the open-source projects:
+- [stog](https://github.com/sheng-z/stog)
+- [AllenNLP](https://github.com/allenai/allennlp)
+- [OpenNMT-py](https://github.com/OpenNMT/OpenNMT-py)
+- [NeuroNLP2](https://github.com/XuezheMax/NeuroNLP2)
+- [huggingface](https://huggingface.co/transformers/)
+
+Thank you for making research easier!
+
+## License
+[MIT](LICENSE)

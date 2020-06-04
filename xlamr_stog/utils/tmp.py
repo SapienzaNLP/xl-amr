@@ -1,0 +1,2 @@
+# ::pos_tags ["VERB", "ADP", "VERB", "ADP", "DET", "NOUN", "VERB", "DET", "NOUN", "PROPN", "CCONJ", "DET", "NOUN", "ADJ"]
+# ::ner_tags ["O", "O", "O", "O", "O", "O", "O", "O", "O", "LOCATION", "O", "O", "O", "O"]
