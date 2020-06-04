@@ -108,9 +108,9 @@ XL-AMR models are trained in one GeForce GTX TITAN X GPU.
 We provide the params ```.yaml``` files for all the models in the paper. 
 
 
-    python -u -m stog.commands.train params/{xl-amr_configuration}.yaml
+    python -u -m stog.commands.train params/{method}/{xl-amr_configuration}.yaml
 
-
+```method -> {zeroshot, xl-amr_par, xl-amr_trns}```
 ## 6. Prediction
 
 To evaluate the XL-AMR models run: 
