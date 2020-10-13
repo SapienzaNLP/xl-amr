@@ -1,6 +1,6 @@
 # XL-AMR: Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
 
-XL-AMR (paper) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
+XL-AMR ([Camera ready print](https://github.com/SapienzaNLP/xl-amr/blob/master/docs/EMNLP2020_XL_AMR.pdf)) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
 
 
 If you find either our code or our release datasets useful in your work, please cite us with:
