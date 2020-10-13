@@ -4,7 +4,7 @@ set -e
 
 data_dir=data/AMR/amr_2.0
 declare -a StringArray=("en" "de" "es" "it" )
-util_dir=data/AMR/en_es_it_de_utils
+util_dir=data/AMR/en_es_it_de_zh_utils
 
 for lang in ${StringArray[@]}; do
   echo $lang

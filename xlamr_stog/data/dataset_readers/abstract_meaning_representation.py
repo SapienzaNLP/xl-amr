@@ -15,7 +15,7 @@ from xlamr_stog.data.instance import Instance
 from xlamr_stog.data.token_indexers import TokenIndexer, SingleIdTokenIndexer
 from xlamr_stog.data.tokenizers import Token
 from xlamr_stog.data.tokenizers.bert_tokenizer import AMRBertTokenizer
-# from xlamr_stog.data.tokenizers.laser_tokenizer import LaserTokenizer
+
 from xlamr_stog.utils.checks import ConfigurationError
 from xlamr_stog.utils.string import START_SYMBOL, END_SYMBOL
 
@@ -75,6 +75,7 @@ class AbstractMeaningRepresentationDatasetReader(DatasetReader):
             self.tgt_src_replacements["it"] = dict()
             self.tgt_src_replacements["es"] = dict()
             self.tgt_src_replacements["de"] = dict()
+            self.tgt_src_replacements["zh"] = dict()
         else:
             self.tgt_src_replacements = tgt_src_replacements
 
@@ -112,18 +113,24 @@ class AbstractMeaningRepresentationDatasetReader(DatasetReader):
         print(file_path_list)
         source_copy = self.source_copy
         for lang, file_path in file_path_list:
-            u_pos = self.convert_postags(lang)
+            try:
+                u_pos = self.convert_postags(lang)
+            except:
+                u_pos = None
             # if `file_path` is a URL, redirect to the cache
             file_path = cached_path(file_path)
             logger.info("Reading instances from lines in file at: %s %s %s", lang, file_path, self.split)
             i = 0
             for amr in AMRIO.read(file_path, lang=lang, universal_postags=self.universal_postags, postag_map=u_pos):
                 i+=1
-                # if i==100: break
+
                 try:
                     yield self.text_to_instance(amr, lang, source_copy, self.split)
-                except:
-                    continue
+                except Exception as e:
+                    if self.split != "test":
+                        continue
+                    else:
+                        raise e
         self.report_coverage()
 
     @overrides

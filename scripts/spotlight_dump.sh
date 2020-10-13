@@ -1,7 +1,7 @@
 
 lang=$1
 port=$2
-util_dir=data/AMR/en_es_it_de_utils
+util_dir=data/AMR/en_es_it_de_zh_utils
 if [[ "$lang" = "en" ]]; then
   test_data=data/AMR/amr_2.0/test.txt
 else

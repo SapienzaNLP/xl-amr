@@ -2,7 +2,7 @@
 
 # Device-sensitive parameters
 amr_data_dir: &amr_data_dir data/AMR/
-numberbatch: &numberbatch data/numberbatch/numberbatch-19.08.en_it_es_de.txt
+numberbatch: &numberbatch data/numberbatch/numberbatch-19.08.en_it_es_de_zh.txt
 
 
 # Model parameters
@@ -161,17 +161,11 @@ vocab:
 data:
   data_dir: *amr_data_dir
   train_data:
-#    - !!python/list [en, amr_2.0/train.txt.features.recat]
-#    - !!python/list [de, amr_2.0_de_es_it/train_de.txt.features.recat]
-    - !!python/list [es, amr_2.0_de_es_it/train_es.txt.features.recat]
-#    - !!python/list [it, amr_2.0_de_es_it/train_it.txt.features.recat]
+    - !!python/list [es, amr_2.0_zh_de_es_it/train_es.txt.features.recat]
   dev_data:
-#    - !!python/list [en, amr_2.0/dev.txt.features.recat]
-#    - !!python/list [de, amr_2.0_de_es_it/dev_de.txt.features.recat]
-    - !!python/list [es, amr_2.0_de_es_it/dev_es.txt.features.recat]
-#    - !!python/list [it, amr_2.0_de_es_it/dev_it.txt.features.recat]
+    - !!python/list [es, amr_2.0_zh_de_es_it/dev_es.txt.features.recat]
   test_data:
-    - !!python/list [es, amr_2.0_de_es_it/dev_es.txt.features.recat]
+    - !!python/list [es, amr_2.0_zh_de_es_it/dev_es.txt.features.recat]
 
   data_type: AMR
   batch_first: True

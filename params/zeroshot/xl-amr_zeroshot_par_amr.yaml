@@ -2,7 +2,7 @@
 
 # Device-sensitive parameters
 amr_data_dir: &amr_data_dir data/AMR/
-numberbatch: &numberbatch data/numberbatch/numberbatch-19.08.en_it_es_de.txt
+numberbatch: &numberbatch data/numberbatch/numberbatch-19.08.en_it_es_de_zh.txt
 
 
 # Model parameters

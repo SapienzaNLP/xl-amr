@@ -5,8 +5,8 @@ import string
 from typing import List, Dict, Set
 from collections import defaultdict
 
-from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
-from xlamr_stog.data.dataset_readers.amr_parsing.amr import AMR
+from stog.data.dataset_readers.amr_parsing.io import AMRIO
+from stog.data.dataset_readers.amr_parsing.amr import AMR
 from tqdm import tqdm
 
 def prev_token_is(index: int, k: int, amr: AMR, pattern: str):
@@ -41,6 +41,7 @@ class TextAnonymizor:
                  _R: List,
                  _INVP: List,
                  _INVS: List,
+                 exlude_ners: bool
                  ) -> None:
         self._text_maps = text_maps
         self._priority_lists = priority_lists
@@ -54,6 +55,7 @@ class TextAnonymizor:
         self._INVP = _INVP
         self._INVS = _INVS
         self.NM_anonym={x.rstrip() for x in open("data/misc/NM_anonym.txt").readlines()}
+        self.exlude_ners = exlude_ners
 
     def __call__(self, amr: AMR) -> Dict:
         anonymization_map = {}
@@ -184,14 +186,18 @@ class TextAnonymizor:
                 span1 = ' '.join(amr.tokens[start:start + length])
                 span2 = ' '.join(amr.lemmas[start:start + length])
                 ner_tags = amr.ner_tags[start:start + length]
-
+                if anonym_type == 'named-entity' and len(set(ner_tags)) > 1:
+                    check_here=True
                 if span1 in ignored_spans or span2 in ignored_spans:
                     continue
-                if lang_stopwords:
-                    if span1 in lang_stopwords or span2 in lang_stopwords: continue
+                if it_stopwords:
+                    if span1 in it_stopwords or span2 in it_stopwords: continue
 
-                if (span1 in text_map and type(text_map[span1])==dict) or (span2 in text_map and type(text_map[span2])==dict):
-                    value = text_map.get(span1, None) or text_map.get(span2, None)
+                if (span1 in text_map and type(text_map[span1])==dict) or (span2 in text_map and type(text_map[span2])==dict) or (amr.lang=="zh" and span1.replace(" ","") in text_map and type(text_map[span1.replace(" ","")])==dict) or (amr.lang=="zh" and span2.replace(" ","") in text_map and type(text_map[span2.replace(" ","")])==dict):
+                    if amr.lang=="zh":
+                        value = text_map.get(span1, None) or text_map.get(span2, None) or text_map.get(span1.replace(" ",""), None) or text_map.get(span2.replace(" ",""), None)
+                    else:
+                        value = text_map.get(span1, None) or text_map.get(span2, None)
                     if anonym_type == 'named-entity':
                         entity_name = value['lemma'] if 'lemma' in value else value['ops']
                         if entity_name in collected_entities:
@@ -205,76 +211,84 @@ class TextAnonymizor:
                     amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
                     return False
                 else:
-                    if lang2en_bn is None and lang2en_span is None: continue
-                    if anonym_type != "named-entity": continue
-                    #TODO check in BN mappings
-                    ner_tags = amr.ner_tags[start:start + length]
-                    # if len(set(ner_tags))==1 and ner_tags[0] in {"O","0"}: continue
 
-                    span1=span1.replace(" ","_")
-                    span2=span2.replace(" ","_")
-                    if span1 in lang2en_span or span2 in lang2en_span or span1.title() in lang2en_span or span2.title() in lang2en_span:
-                        if span1 in lang2en_span: candidate_span = span1
-                        elif span2 in lang2en_span: candidate_span = span2
-                        elif span1.title() in lang2en_span: candidate_span = span1.title()
-                        else: candidate_span = span2.title()
+                    if lang2en_bn is not None and  lang2en_span is not None: #continue
+                        if anonym_type != "named-entity": continue
+                        ner_tags = amr.ner_tags[start:start + length]
+                        # if len(set(ner_tags))==1 and ner_tags[0] in {"O","0"}: continue
+                        if amr.lang =="zh":
+                            span1=span1.replace(" ","")
+                            span2=span2.replace(" ","")
+                        else:
+                            span1=span1.replace(" ","_")
+                            span2=span2.replace(" ","_")
 
-                        if candidate_span is not None:
-                            en_spans=lang2en_span[candidate_span]
-                            value=None
-                            for en_span in en_spans:
-                                en_span=en_span.title()
-                                if en_span in text_map and type(text_map[en_span]) == dict:
-                                    value = text_map.get(en_span, None)
-                                    break
-                            if value is None: continue
-                            if anonym_type == 'named-entity':
-                                entity_name = value['lemma'] if 'lemma' in value else value['ops']
+                        if span1 in lang2en_span or span2 in lang2en_span or span1.title() in lang2en_span or span2.title() in lang2en_span:
+                            if span1 in lang2en_span: candidate_span = span1
+                            elif span2 in lang2en_span: candidate_span = span2
+                            elif span1.title() in lang2en_span: candidate_span = span1.title()
+                            else: candidate_span = span2.title()
+
+                            if candidate_span is not None:
+                                en_spans=lang2en_span[candidate_span]
+                                value=None
+                                for en_span in en_spans:
+                                    en_span=en_span.title()
+                                    if en_span in text_map and type(text_map[en_span]) == dict:
+                                        value = text_map.get(en_span, None)
+                                        break
+                                if value is None: continue
+                                if anonym_type == 'named-entity':
+                                    entity_name = value['lemma'] if 'lemma' in value else value['ops']
+                                    if entity_name in collected_entities:
+                                        continue
+                                    else:
+                                        collected_entities.add(entity_name)
+                                anonym_lemma = value['ner'] + '_' + str(len(replaced_spans))
+                                pos_tag = amr.pos_tags[start] if anonym_type == 'quantity' else pos_tag
+                                ner = 'NUMBER' if anonym_type == 'quantity' else value['ner']
+                                replaced_spans[anonym_lemma] = value
+                                amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
+                                return False
+
+                        elif span1 in lang2en_bn or span2 in lang2en_bn or span1.title() in lang2en_bn or span2.title() in lang2en_bn:
+                            if anonym_type != "named-entity": continue
+                            if span1 in string.punctuation or span2 in string.punctuation: continue
+                            if len(set(ner_tags)) == 1 and ner_tags[0] in {"O", "0"}: continue
+                            if span1 in lang2en_bn: candidate_nm = span1
+                            elif span2 in lang2en_bn: candidate_nm = span2
+                            elif span1.title() in lang2en_bn: candidate_nm = span1.title()
+                            else: candidate_nm = span2.title()
+
+                            if candidate_nm is not None:
+                                en_nm = lang2en_bn[candidate_nm]
+                                entity_name = en_nm.replace("_"," ")
                                 if entity_name in collected_entities:
                                     continue
                                 else:
                                     collected_entities.add(entity_name)
-                            anonym_lemma = value['ner'] + '_' + str(len(replaced_spans))
-                            pos_tag = amr.pos_tags[start] if anonym_type == 'quantity' else pos_tag
-                            ner = 'NUMBER' if anonym_type == 'quantity' else value['ner']
-                            replaced_spans[anonym_lemma] = value
-                            amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
-                            return False
+                                ner=[x for x in ner_tags if x not in {"O","0"}]
+                                if len(ner)==0:
+                                    ner="ENTITY"
+                                else:
+                                    ner=ner[0]
 
-                    elif span1 in lang2en_bn or span2 in lang2en_bn or span1.title() in lang2en_bn or span2.title() in lang2en_bn:
-                        if anonym_type != "named-entity": continue
-                        if span1 in string.punctuation or span2 in string.punctuation: continue
-                        if len(set(ner_tags)) == 1 and ner_tags[0] in {"O", "0"}: continue
-                        if span1 in lang2en_bn: candidate_nm = span1
-                        elif span2 in lang2en_bn: candidate_nm = span2
-                        elif span1.title() in lang2en_bn: candidate_nm = span1.title()
-                        else: candidate_nm = span2.title()
+                                anonym_lemma = ner + '_' + str(len(replaced_spans))
+                                pos_tag = amr.pos_tags[start] if anonym_type == 'quantity' else pos_tag
 
-                        if candidate_nm is not None:
-                            en_nm = lang2en_bn[candidate_nm]
-                            entity_name = en_nm.replace("_"," ")
-                            if entity_name in collected_entities:
-                                continue
-                            else:
-                                collected_entities.add(entity_name)
-                            ner=[x for x in ner_tags if x not in {"O","0"}]
-                            if len(ner)==0:
-                                ner="ENTITY"
-                            else:
-                                ner=ner[0]
-
-                            anonym_lemma = ner + '_' + str(len(replaced_spans))
-                            pos_tag = amr.pos_tags[start] if anonym_type == 'quantity' else pos_tag
-
-                            replaced_spans[anonym_lemma] = {"type": "named-entity", "span": entity_name, "ops": entity_name, "ner": ner}
-                            # replaced_spans[anonym_lemma] = {"type": "named-entity", "span": span1.replace(" ","_"), "ops": entity_name, "ner": ner}
-                            amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
-                            return False
-
-                    elif "_".join(span1.split("_")[:-1]) not in self.NM_anonym and len(set(ner_tags))==1 and ner_tags[0] not in {"O", "0"}:
+                                replaced_spans[anonym_lemma] = {"type": "named-entity", "span": entity_name, "ops": entity_name, "ner": ner}
+                                # replaced_spans[anonym_lemma] = {"type": "named-entity", "span": span1.replace(" ","_"), "ops": entity_name, "ner": ner}
+                                amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
+                                return False
+                    #inclusive for all languages
+                    if amr.lang == "en" and self.exlude_ners: continue
+                    if amr.lang == "zh": continue
+                    if "_".join(span1.split("_")[:-1]) not in self.NM_anonym and len(set(ner_tags))==1 and ner_tags[0] not in {"O", "0"}:
+                        # print("_".join(span1.split("_")[:-1]))
                         cont=False
                         for nmt in self.NM_anonym:
-                            if nmt in span1: cont=True
+                            if nmt in span1:
+                                cont=True
 
                         if cont: continue
                         entity_name = span1.replace("_"," ")
@@ -282,9 +296,13 @@ class TextAnonymizor:
                             continue
                         else:
                             collected_entities.add(entity_name)
-                        anonym_lemma = ner_tags[0] + '_' + str(len(replaced_spans))
+                        if ner_tags[0] in ["EMAIL","PERCENT", "GPE","CARDINAL", "EVENT", "NORP", "QUANTITY", "LAW", "FAC", "PRODUCT","WORK_OF_ART"]:
+                            ner_tag_am = "ENTITY"
+                        else:
+                            ner_tag_am = ner_tags[0]
+                        anonym_lemma = ner_tag_am + '_' + str(len(replaced_spans))
                         pos_tag = amr.pos_tags[start] if anonym_type == 'quantity' else pos_tag
-                        ner = ner_tags[0]
+                        ner = ner_tag_am #ner_tags[0]
                         # replaced_spans[anonym_lemma] = {"type": "named-entity", "span": span1, "ops": entity_name, "ner": ner}
                         replaced_spans[anonym_lemma] = {"type": "named-entity", "span": entity_name, "ops": entity_name,"ner": ner}
                         amr.replace_span(list(range(start, start + length)), [anonym_lemma], [pos_tag], [ner])
@@ -308,7 +326,7 @@ class TextAnonymizor:
         return ignored_spans
 
     @classmethod
-    def from_json(cls, file_path: str) -> 'TextAnonymizor':
+    def from_json(cls, file_path: str, exlude_ners: bool = True) -> 'TextAnonymizor':
         with open(file_path, encoding="utf-8") as f:
             d = json.load(f)
         return cls(
@@ -322,6 +340,7 @@ class TextAnonymizor:
             _R=d["R"],
             _INVP=d["INVP"],
             _INVS=d["INVS"],
+            exlude_ners=exlude_ners
         )
 
 from collections import Counter
@@ -377,7 +396,6 @@ def load_name_span_map(json_file, lang):
 
     return lang_nm2en_span
 
-
 if __name__ == "__main__":
     import argparse
 
@@ -386,13 +404,14 @@ if __name__ == "__main__":
     parser.add_argument('--amr_file', nargs="+", required=True, help="File to anonymize.")
     parser.add_argument('--util_dir')
     parser.add_argument('--lang')
+    parser.add_argument('--exclude_ners', action="store_true", help="consider NER tags for entities not found in training.")
     args = parser.parse_args()
 
-    reliable_sources_lang=dict()
-    reliable_sources_lang["it"]=set("WIKI OMWN MSTERM FRAMENET VERBNET OMWN_IT IWN OMWIKI".split())
-    reliable_sources_lang["es"]=set("WIKI MSTERM FRAMENET VERBNET MRC_ES OMWIKI".split())
-    reliable_sources_lang["de"]=set("WIKI OMWN MSTERM FRAMENET VERBNET OMWIKI WIKIDATA".split())
-
+    reliable_sources_lang = dict()
+    reliable_sources_lang["it"] = set("WIKI OMWN MSTERM FRAMENET VERBNET OMWN_IT IWN OMWIKI".split())
+    reliable_sources_lang["es"] = set("WIKI MSTERM FRAMENET VERBNET MRC_ES OMWIKI".split())
+    reliable_sources_lang["de"] = set("WIKI OMWN MSTERM FRAMENET VERBNET OMWIKI WIKIDATA".split())
+    reliable_sources_lang["zh"] = set("WIKI OMWN_ZH OMWN_CWN".split())
 
     if args.lang=="en":
         text_anonymizor = TextAnonymizor.from_json(os.path.join(args.util_dir,
@@ -409,7 +428,7 @@ if __name__ == "__main__":
         lang2en_bn=load_name_bn_wiki_map("data/babelnet/namedEntity_wiki_synsets.{}.tsv".format(args.lang.upper()), reliable_sources_lang[args.lang])
 
     for amr_file in args.amr_file:
-        with open(amr_file + ".recategorize", "w", encoding="utf-8") as f:
+        with open(amr_file + ".recategorize{}".format("_noner" if args.exclude_ners else ""), "w", encoding="utf-8") as f:
             for amr in tqdm(AMRIO.read(amr_file, lang=args.lang)):
 
                 amr.abstract_map = text_anonymizor(amr)

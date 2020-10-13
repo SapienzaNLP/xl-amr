@@ -91,7 +91,7 @@ class SenseRemover:
         return instance
 
 
-    def remove_sense_rexhina(self, instance):
+    def remove_sense_2(self, instance):
         if re.search(r'-\d\d$', instance):
 
             return "UNKNOWN"

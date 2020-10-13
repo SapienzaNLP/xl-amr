@@ -47,12 +47,10 @@ if __name__=="__main__":
     parser.add_argument('--trans_path', help='file dir from which to get translations.')
     parser.add_argument('--out_path', help='dump dir.')
 
-
     args = parser.parse_args()
 
-
-    for split in ["dev","train"]:
-        for lang in ["es","de", "it"]:
+    for split in ["dev", "train"]:
+        for lang in ["es", "de", "it", "zh"]:
             amr_file=os.path.join(args.amr_path, "{}.txt".format(split))
             out_path=args.out_path
             dataset = Dataset(amr_file, out_path, lang, split)

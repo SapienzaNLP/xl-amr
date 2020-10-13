@@ -252,7 +252,7 @@ class Entity:
             return 10
         # Stem exact match.
         elif STEMMER(op) == amr.stems[index]:
-            return 8
+                return 8
         # Tagged as named entity and match the first 3 chars.
         elif amr.is_named_entity(index) and (
                 op_lower[:3] == token_lower[:3] or
@@ -265,9 +265,8 @@ class Entity:
               op_lower[:3] == lemma_lower[:3] or
               op_lower[:3] == stripped_lemma_lower[:3]
         ):
-            if amr.lang!="en":# and op_lower[:3] in {"del"}:
+            if amr.lang!="en":
                 return 0
-            # elif amr.lang=="it" and not
             else:
                 return 1
         # Match after mapping.
@@ -275,7 +274,6 @@ class Entity:
             return max(Entity.maybe_align_op_to(mapped_op, index, amr, STEMMER) for mapped_op in Entity.entity_map[op])
         else:
             return 0
-
 
     @staticmethod
     def collapse_name_nodes(entities, amr, type_counter=None):

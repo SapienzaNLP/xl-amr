@@ -1,6 +1,21 @@
-# Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
+# XL-AMR: Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
 
-Code for EMNLP 2020 Submission 1649. Confidential Link Copy. PLEASE DO NOT DISTRIBUTE.
+XL-AMR (paper) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
+
+
+If you find either our code or our release datasets useful in your work, please cite us with:
+```
+@inproceedings{blloshmi-etal-2020-enabling,
+  title={{XL}-{AMR}: {E}nabling {C}ross-{L}ingual {AMR} Parsing with Transfer Learning Techniques},
+  author={Blloshmi, Rexhina and Tripodi, Rocco and Navigli, Roberto},
+  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing, EMNLP2020},
+  publisher={Association for Computational Linguistics},
+  year      = {2020},
+  month     = nov,
+  address = {Online}
+}
+```
+
 
 ## 1. Install 
 
@@ -43,19 +58,21 @@ Project English test AMR graphs across languages:
     ./scripts/project_test.sh 
    
     
-## 3. Silver dataset for {German, Italian, Spanish}
+## 3. Silver dataset for {Chinese, German, Italian, Spanish}
 
-#### 3.1 Annotation Projection through parallel sentences 
-These data make use of Europarl corpus [1]  and the English AMR parser by Zhang etal. 2019 [2] to parse the English side of the parallel corpus.
+#### 3.1 Annotation Projection through parallel sentences
+These data make use of Europarl corpus [1]  and the English AMR parser by Zhang et al. 2019 [2] to parse the English side of the parallel corpus.
 
 Data used for training and development are found in the following folder: 
  
     cd xl-amr/data/AMR/europarl_en_de_es_it/
+    
+<sub><sup>*We do not produce silver AMR graphs for Chinese in this approach since Europarl does not cover Chinese language. </sup></sub>
 
 #### 3.2 Annotation Projection through automatic translations
 We machine translated sentences of AMR 2.0 using [OPUS-MT](https://huggingface.co/transformers/model_doc/marian.html) pretrained models and filtered less accurate translations. The translated sentences are found in the following folder: 
 
-    cd data/AMR/amr_2.0_de_es_it/translations/
+    cd data/AMR/amr_2.0_zh_de_es_it/translations/
 
 To respect the LDC agreement for AMR 2.0, we release the translations without the gold graphs. Therefore to project the AMR graphs from AMR 2.0 run:
 
@@ -81,10 +98,12 @@ To respect the LDC agreement for AMR 2.0, we release the translations without th
 - For German and Spanish we use [Stanza](https://stanfordnlp.github.io/stanza/). Before running the script, dowload the models.
     
         import stanza
+        stanza.download("zh")
         stanza.download("de")
         stanza.download("es")
+        
 
-Run the script ```lang -> {en, de, es, it}``` and ```dataset_type -> {silver, gold}```:
+Run the script ```lang -> {en, zh, de, es, it}``` and ```dataset_type -> {silver, gold}```:
 
     ./scripts/annotate_features_multilingual.sh {data_dir} {lang} {dataset_type}
 
@@ -121,7 +140,7 @@ To evaluate the XL-AMR models run:
 
 For postprocessing two steps are needed: 
 
-1 - Run wikification using **DBPedia Spotlight API** on the test sentences for each language. Before running the script, start a docker server (following the instructions here [spotlight-docker](https://github.com/dbpedia-spotlight/spotlight-docker)) for the the specific language model at ```{port}``` for example:
+1 - Run wikification using **DBPedia Spotlight API** on the test sentences for each language. Before running the script, start a docker server (following the instructions here [spotlight-docker](https://github.com/dbpedia-spotlight/spotlight-docker)) for the the specific language model at ```{port}``` for example (the italian case):
 
     docker run -itd --restart unless-stopped -p 2230:80 dbpedia/spotlight-italian spotlight.sh
    
@@ -131,12 +150,15 @@ For postprocessing two steps are needed:
     ./scripts/spotlight_dump.sh {lang} {port}
     
  ```lang -> {en, de, es, it}```
+ 
+ <sub><sup>*For Chinese we use [Babelfy](http://babelfy.org/) as shown in [Babelfy HTTP API example](http://babelfy.org/guide) . </sup></sub>
+ 
        
 2 - Run postprocessing script:
 
     ./postprocess_multilingual.sh {lang} {model_dir}
     
-```lang -> {en, de, es, it}```
+```lang -> {en, zh, de, es, it}```
 
 ## 8. Evaluation using [Smatch](https://github.com/snowblink14/smatch) and [Fine-Grained](https://github.com/mdtux89/amr-evaluation) metrics
 

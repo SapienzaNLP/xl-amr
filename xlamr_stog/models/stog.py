@@ -1353,8 +1353,7 @@ class STOG(Model):
                 if self.translation_mapping is None or self.train_replacements is None:
                     src_token = find_similar_token(token, list(tag_luts[i]['pos'].keys()))
                 else:
-                    src_token = find_tgt_token_src(token, list(tag_luts[i]['pos'].keys()), src_postags=tag_luts[i]['pos'], language=language, translation_mappings=self.translation_mapping, replacements=self.train_replacements[language], training=False) #TODO verify
-                if src_token is not None:
+                    src_token = find_tgt_token_src(token, list(tag_luts[i]['pos'].keys()), src_postags=tag_luts[i]['pos'], language=language, translation_mappings=self.translation_mapping, replacements=self.train_replacements[language], training=False)
                     pos_tags[i] = self.vocab.get_token_index(
                         tag_luts[i]['pos'][src_token], 'pos_tag')
                 if False: # is_abstract_token(token):

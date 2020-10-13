@@ -33,9 +33,9 @@ def normalize_text(text):
 
 class Expander:
 
-    def __init__(self, util_dir, it_vocab=None, postag_map=None, lang ="en", u_pos=False):
+    def __init__(self, util_dir, lang_vocab=None, postag_map=None, lang ="en", u_pos=False):
         self.util_dir = util_dir
-        self.it_vocab = it_vocab
+        self.lang_vocab = lang_vocab
         self.lang = lang
         self.postag_map=postag_map
         self.u_pos=u_pos
@@ -69,6 +69,7 @@ class Expander:
 
     def expand_file(self, file_path):
         for i, amr in enumerate(AMRIO.read(file_path, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map)):
+            # print(amr)
             self.expand_graph(amr)
             yield amr
         self.print_stats()
@@ -109,7 +110,7 @@ class Expander:
                             self.url_expand_count += 1
 
     def restore_polarity(self, amr):
-        polarity = Polarity(amr, it_vocab=self.it_vocab, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map)
+        polarity = Polarity(amr, lang_vocab=self.lang_vocab, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map)
         polarity.predict_polarity()
         polarity.restore_polarity()
         polite = Polite(amr)
@@ -184,7 +185,12 @@ class Expander:
         a = saved_dict['ops'][0] #quick fix
         if  a =='"-1"':
             a = "1"
-        graph.add_node_attribute(node, 'value', int(a))
+        try:
+            graph.add_node_attribute(node, 'value', int(a))
+        except:
+            a = a[1:-1]
+            graph.add_node_attribute(node, 'value', int(a)*-1)
+
 
     def _load_utils(self):
         if self.lang=="en":
@@ -198,7 +204,8 @@ class Expander:
 
         # The country list is downloaded from github:
         # https://github.com/Dinu/country-nationality-list
-        with open(os.path.join(self.util_dir, 'countries.json'), encoding='utf-8') as f:
+        # with open(os.path.join(self.util_dir, 'countries.json'), encoding='utf-8') as f:
+        with open(os.path.join('data/misc', 'countries.json'), encoding='utf-8') as f:
             countries = json.load(f)
             for country in countries:
                 nationalities = [n.strip() for n in country['nationality'].split(',')]
@@ -221,7 +228,7 @@ class Expander:
 
 def convert_postags(lang):
     u_pos = dict()
-    with open("data/misc/pos-conversion-table.{}".format(lang), "r") as infile:
+    with open("data/POStag/pos-conversion-table.{}".format(lang), "r") as infile:
         for line in infile:
             fields = line.rstrip().split()
             u_pos[fields[0]] = fields[1]
@@ -238,15 +245,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     if args.lang=="en":
-        it_vocab=None
+        lang_vocab=None
     else:
-        it_vocab = json.load(open("data/numberbatch/{}_en_neighbors_model.json".format(args.lang), "r"))
-    postag_map = convert_postags(args.lang)
-    # it_vocab = set(it_vocab_dict.keys())
-    expander = Expander(util_dir=args.util_dir, it_vocab=it_vocab, postag_map=postag_map, lang =args.lang, u_pos=args.u_pos)
+        lang_vocab = json.load(open("data/numberbatch/{}_en_neighbors_model.json".format(args.lang), "r"))
+    if args.lang!="zh":
+        postag_map = convert_postags(args.lang)
+    else:
+        postag_map = None
+
+    expander = Expander(util_dir=args.util_dir, lang_vocab=lang_vocab, postag_map=postag_map, lang =args.lang, u_pos=args.u_pos)
 
     for file_path in args.amr_files:
+        print(file_path)
         with open(file_path + '.expand', 'w', encoding='utf-8') as f:
             for amr in expander.expand_file(file_path):
                 f.write(str(amr) + '\n\n')
-

@@ -117,7 +117,11 @@ class URL:
                 span=' '.join(map(self.amr.lemmas.__getitem__, span)),
                 value=alignment.url)
             self.amr.replace_span(span, [abstract], ['NN'], ['URL'])
-            self.amr.graph.replace_node_attribute(alignment.node, 'value', alignment.url, abstract)
+            try:
+                self.amr.graph.replace_node_attribute(alignment.node, 'value', alignment.url, abstract)
+            except Exception as e:
+                print(self.amr.sentence)
+                continue
         return count
 
     def remove_redundant_url(self):

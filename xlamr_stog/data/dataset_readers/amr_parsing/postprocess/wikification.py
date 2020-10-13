@@ -78,8 +78,6 @@ class Wikification:
                     graph.set_name_node_wiki(node, wiki)
 
 
-
-
     def wikify(self, text, cached_wiki=None):
         text = text.lower()
         if text in self.wiki_span_cooccur_counter:
@@ -122,7 +120,7 @@ class Wikification:
 
         # The country list is downloaded from github:
         # https://github.com/Dinu/country-nationality-list
-        with open(os.path.join(self.util_dir, 'countries.json'), encoding='utf-8') as f:
+        with open('data/misc/countries.json', encoding='utf-8') as f:
             countries = json.load(f)
             for country in countries:
                 nationalities = [n.strip() for n in country['nationality'].split(',')]

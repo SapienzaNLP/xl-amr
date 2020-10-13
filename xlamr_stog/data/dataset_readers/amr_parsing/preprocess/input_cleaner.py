@@ -56,8 +56,6 @@ def correct_errors(amr):
     while True:
         index = None
         for i, token in enumerate(amr.tokens):
-            if amr.sentence=="Protege las islas Diayu":
-                here=True
             if amr.lang == "es" and token=="Diayu":
                 tokens=["Diaoyu"]
                 index=i

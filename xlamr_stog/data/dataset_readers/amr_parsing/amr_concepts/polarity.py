@@ -52,7 +52,7 @@ class Polarity:
         'traffic': 'have-polarity',
     }
 
-    def __init__(self, amr, dry=False, it_vocab=None, lang="en", universal_postags=False, postag_map=None):
+    def __init__(self, amr, dry=False, lang_vocab=None, lang="en", universal_postags=False, postag_map=None):
         self.amr = amr
         self.dry = dry
         self.nodes = self.get_negated_nodes()
@@ -60,7 +60,7 @@ class Polarity:
         self.special_negations = []
         self.true_positive = 0
         self.false_positive = 0
-        self.it_vocab = it_vocab
+        self.lang_vocab = lang_vocab
         self.lang = lang
         self.u_pos = universal_postags
         self.postag_map = postag_map
@@ -190,6 +190,10 @@ class Polarity:
         if self.amr.lang =="de":
             if lemma in ('nicht', 'keine', 'kein', 'keinen', 'niemals', 'nimmer', 'nie', 'nien'):
                 return True
+        if self.amr.lang=="zh":
+            if lemma in ('不', '没有'):
+                # print("Entered in Chinese negatiton condition")
+                return True
 
         if lemma in ('not', 'never', 'without', 'no', 'dont', 'nowhere', 'none',
                      'neither', 'havent', 'didnt', 'wont', 'cant', 'doesnt'):
@@ -208,7 +212,7 @@ class Polarity:
                 ''' A livello morfologico, i prefissi s-, dis-, a-, in-, 
                 che formano aggettivi, nomi e verbi negativi a partire dai corrispondenti elementi di base'''
                 head = re.sub(r'^(s|dis|a|in)', '', lemma)
-                if "it_"+head in self.it_vocab:
+                if "it_"+head in self.lang_vocab:
                     self.special_negations.append((index, head))
         elif self.amr.lang=="en":
             if re.search(r'.+less$', lemma):
@@ -239,7 +243,7 @@ class Polarity:
                 return False
             if pos_tag == 'RB' and lemma not in ('there',):
                 return False
-        else:
+        elif self.postag_map is not None:
             if pos_tag in [self.postag_map[x] for x in ('PRP', '.', 'IN', 'PRP$', 'POS', 'DT') if x in self.postag_map]:
                 return False
             if pos_tag in [self.postag_map[x] for x in ('JJ',) if x in self.postag_map] and next_lemma in ['measure']:
@@ -253,18 +257,21 @@ class Polarity:
         return True
 
     def get_head(self, index):
-        head = self.get_special_head(index)
-        if head is None:
-            i = index + 1
-            head = None
-            while i < len(self.amr.tokens):
-                if self.is_head(i):
-                    head = i
-                    break
-                i += 1
-        if self.is_false_positive(index, head):
-            return None
-        return head
+        if self.amr.lang=="zh":
+            return index+1
+        else:
+            head = self.get_special_head(index)
+            if head is None:
+                i = index + 1
+                head = None
+                while i < len(self.amr.tokens):
+                    if self.is_head(i):
+                        head = i
+                        break
+                    i += 1
+            if self.is_false_positive(index, head):
+                return None
+            return head
 
     def is_false_positive(self, index, head):
         if head is None:
@@ -281,7 +288,7 @@ class Polarity:
             if next_lemma == 'like' and self.amr.pos_tags[index + 1] == 'IN':
                 return True
         else:
-            if 'IN' in self.postag_map:
+            if self.postag_map is not None and 'IN' in self.postag_map:
                 if next_lemma == 'like' and self.amr.pos_tags[index + 1] == self.postag_map['IN']:
                     return True
 
@@ -322,7 +329,6 @@ class Polarity:
             else:
                 if third_lemma and self.amr.pos_tags[index + 2] in [self.postag_map[x] for x in ('RB',) if x in self.postag_map]:
                     return None
-
             return index + 1
         if next_lemma == 'new' and third_lemma == 'initiative':
             return index + 8

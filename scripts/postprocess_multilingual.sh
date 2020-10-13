@@ -3,7 +3,7 @@
 set -e
 
 # Directory where intermediate utils will be saved to speed up processing.
-util_dir=data/AMR/en_es_it_de_utils
+util_dir=data/AMR/en_es_it_de_zh_utils
 
 lang=$1
 model_dir=$2

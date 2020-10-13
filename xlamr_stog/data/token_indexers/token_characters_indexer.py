@@ -1,6 +1,6 @@
 from typing import Dict, List
 import itertools
-
+import re
 from overrides import overrides
 
 from xlamr_stog.utils.checks import ConfigurationError
@@ -54,7 +54,7 @@ class TokenCharactersIndexer(TokenIndexer[List[int]]):
             token_indices: List[int] = []
             if token.text is None:
                 raise ConfigurationError('TokenCharactersIndexer needs a tokenizer that retains text')
-            if token.text.startswith("en_") or token.text.startswith("it_") or token.text.startswith("es_") or token.text.startswith("de_"):
+            if re.search(r'^(en_|it_|es_|de_|zh_)',token.text):
                 token_text = token.text[3:]
             else:
                 token_text = token.text
@@ -64,7 +64,6 @@ class TokenCharactersIndexer(TokenIndexer[List[int]]):
                     # use this id instead.
                     index = character.text_id
                 else:
-
                     index = vocabulary.get_token_index(character.text, self._namespace)
                 token_indices.append(index)
             indices.append(token_indices)

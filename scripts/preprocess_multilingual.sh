@@ -4,8 +4,8 @@ set -e
 
 data_dir=$1
 dataset_type=$2
-declare -a StringArray=("en" "de" "es" "it" )
-util_dir=data/AMR/en_es_it_de_utils
+declare -a StringArray=("en" "de" "es" "it" "zh")
+util_dir=data/AMR/en_es_it_de_zh_utils
 
 for lang in ${StringArray[@]}; do
   echo $lang
@@ -20,8 +20,6 @@ for lang in ${StringArray[@]}; do
   fi
 
   if [[ -f "$train_data" ]] && [[ -f "$dev_data" ]]; then
-
-    # ========== Set the above variables correctly ==========
 
     printf "Cleaning inputs...`date`\n"
     python -u -m xlamr_stog.data.dataset_readers.amr_parsing.preprocess.input_cleaner \

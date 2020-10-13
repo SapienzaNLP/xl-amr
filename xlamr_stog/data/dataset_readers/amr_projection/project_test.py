@@ -44,7 +44,7 @@ if __name__=="__main__":
     out_path = args.out_path
     split = "test"
 
-    for lang in ["ES","DE", "IT"]:
+    for lang in ["ES","DE", "IT", "ZH"]:
         print("Processing {}".format(lang))
         lang_sentences=[]
         for ann in file_list:

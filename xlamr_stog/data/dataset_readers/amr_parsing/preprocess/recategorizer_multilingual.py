@@ -8,8 +8,8 @@ from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
 from xlamr_stog.data.dataset_readers.amr_parsing.amr_concepts import Entity, Date, Score, Quantity, Ordinal, Polarity, Polite, URL
 from xlamr_stog.utils import logging
 
-
 logger = logging.init_logger()
+
 
 def resolve_conflict_entities(entities):
     # If there's overlap between any two entities,
@@ -45,10 +45,14 @@ def resolve_conflict_entities(entities):
 
 class Recategorizer:
 
-    def __init__(self, train_data=None, build_utils=False, util_dir=None, lang ="en", countries = None):
+    def __init__(self, train_data=None, build_utils=False, util_dir=None, lang="en", countries=None):
 
-        code2lang = {"en":"english", "it":"italian","es":"spanish","de":"german"}
-        self.stemmer = nltk.stem.SnowballStemmer(code2lang[lang]).stem
+        code2lang = {"en": "english", "it": "italian", "es": "spanish", "de": "german", "zh": "chinese"}
+
+        if lang == "zh":
+            self.stemmer = None
+        else:
+            self.stemmer = nltk.stem.SnowballStemmer(code2lang[lang]).stem
         self.stopwords = [x.rstrip().lower() for x in open("data/babelnet/stopwords_{}.txt".format(lang)).readlines()]
         self.train_data = train_data
         self.build_utils = build_utils
@@ -66,7 +70,7 @@ class Recategorizer:
         self.recat_url_count = 0
         self.removed_wiki_count = 0
         self.lang = lang
-        self.countries=countries
+        self.countries = countries
 
         self.name_type_cooccur_counter = defaultdict(lambda: defaultdict(int))
         self.name_op_cooccur_counter = defaultdict(lambda: defaultdict(int))
@@ -136,14 +140,17 @@ class Recategorizer:
         logger.info('Done.\n')
 
     def _dump_utils(self, directory):
+        ensure_ascii = True
+        if self.lang == "zh":
+            ensure_ascii = False
         with open(os.path.join(directory, 'name_type_cooccur_counter.json'), 'w', encoding='utf-8') as f:
-            json.dump(self.name_type_cooccur_counter, f, indent=4)
+            json.dump(self.name_type_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
         with open(os.path.join(directory, 'name_op_cooccur_counter.json'), 'w', encoding='utf-8') as f:
-            json.dump(self.name_op_cooccur_counter, f, indent=4)
+            json.dump(self.name_op_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
         with open(os.path.join(directory, 'wiki_span_cooccur_counter.json'), 'w', encoding='utf-8') as f:
-            json.dump(self.wiki_span_cooccur_counter, f, indent=4)
+            json.dump(self.wiki_span_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
         with open(os.path.join(directory, 'entity_type_cooccur_counter.json'), 'w', encoding='utf-8') as f:
-            json.dump(self.entity_type_cooccur_counter, f, indent=4)
+            json.dump(self.entity_type_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
 
     def _load_utils(self, directory):
         with open(os.path.join(directory, 'name_type_cooccur_counter.json'), encoding='utf-8') as f:
@@ -158,7 +165,7 @@ class Recategorizer:
     def _map_name_node_type(self, name_node_type):
         if not self.build_utils and name_node_type in self.name_type_cooccur_counter:
             ner_type = max(self.name_type_cooccur_counter[name_node_type].keys(),
-                       key=lambda ner_type: self.name_type_cooccur_counter[name_node_type][ner_type])
+                           key=lambda ner_type: self.name_type_cooccur_counter[name_node_type][ner_type])
             if ner_type in ('0', 'O'):
                 return Entity.unknown_entity_type
             else:
@@ -176,7 +183,10 @@ class Recategorizer:
         logger.info('Done.\n')
 
     def recategorize_graph(self, amr):
-        amr.stems = [self.stemmer(l) for l in amr.lemmas]
+        if amr.lang == "zh":
+            amr.stems = amr.lemmas
+        else:
+            amr.stems = [self.stemmer(l) for l in amr.lemmas]
         self.resolve_name_node_reentrancy(amr)
         self.recategorize_name_nodes(amr)
         if self.build_utils:
@@ -243,7 +253,7 @@ class Recategorizer:
             for entity in removed_entities:
                 amr_type = amr.graph.get_name_node_type(entity.node)
                 backup_ner_type = self._map_name_node_type(amr_type)
-                entity = Entity.get_aligned_entity(entity.node, amr, backup_ner_type, self.entity_type_cooccur_counter, babelnet_mapping=enNM2langNM, stemmer=self.stemmer, stopwords=self.stopwords, countries=self.countries, amr_type=amr_type)
+                entity = Entity.get_aligned_entity(entity.node, amr, backup_ner_type, self.entity_type_cooccur_counter,babelnet_mapping=enNM2langNM, stemmer=self.stemmer,stopwords=self.stopwords, countries=self.countries, amr_type=amr_type)
                 Entity.collapse_name_nodes([entity], amr, type_counter)
         else:
             self._update_utils(entities, amr)
@@ -256,7 +266,7 @@ class Recategorizer:
                 continue
             if graph.is_date_node(node) and Date.collapsable(node, graph):
                 self.date_entity_count += 1
-                date = self._get_aligned_date(node, amr) #TODO handle date alignment for other languages
+                date = self._get_aligned_date(node, amr)  # TODO handle date alignment for other languages
                 if date.span is not None:
                     self.recat_date_entity_count += 1
                 dates.append(date)
@@ -317,7 +327,6 @@ class Recategorizer:
                 if wiki_title is None:
                     wiki_title = '-'
                 for text_span in entity.get_text_spans(amr):
-
                     text_span = text_span.lower()
                     self.wiki_span_cooccur_counter[text_span][wiki_title] += 1
                     self.name_op_cooccur_counter[text_span][' '.join(entity.get_ops())] += 1
@@ -337,7 +346,8 @@ class Recategorizer:
 
 if __name__ == '__main__':
     import argparse
-    parser = argparse.ArgumentParser('recategorizer_multilingual.py')
+
+    parser = argparse.ArgumentParser('recategorizer.py')
     parser.add_argument('--amr_train_file', nargs='+')
     parser.add_argument('--amr_files', nargs='+')
     parser.add_argument('--dump_dir')
@@ -345,12 +355,12 @@ if __name__ == '__main__':
     parser.add_argument('--lang', default='en')
 
     args = parser.parse_args()
-    if args.lang!="en":
+    if args.lang != "en":
         enNM2langNM = json.load(open(os.path.join("data/babelnet/", "name_en_{}_bn_map.json".format(args.lang)), "r"))
     else:
         enNM2langNM = None
 
-    country_nationality_map=dict()
+    country_nationality_map = dict()
     with open(os.path.join("data/misc", 'countries.json'), encoding='utf-8') as f:
         countries = json.load(f)
         for country in countries:
@@ -359,23 +369,23 @@ if __name__ == '__main__':
                 nationalities.remove('Chinese')
             for nationality in nationalities:
                 country_nationality_map[country['en_short_name']] = nationality
-                
-            country_nationality_map['United States']='American'
-            country_nationality_map['Britain']='British'
-            country_nationality_map['Brazil']='Brazilians'
+
+            country_nationality_map['United States'] = 'American'
+            country_nationality_map['Britain'] = 'British'
+            country_nationality_map['Brazil'] = 'Brazilians'
             country_nationality_map['Russia'] = 'Russian'
-            country_nationality_map['North Korea']='North Korean'
-            country_nationality_map['South Korea']='South korean'
-            country_nationality_map['Himalaya']='Himalayan'
-            country_nationality_map['Venezuela']='Venezuelan'
-            country_nationality_map['Kirghizia']='Kirghizian'
-            country_nationality_map['Venezuela']='Venezuelans'
-            country_nationality_map['Shiite']='Shiites'
-                
+            country_nationality_map['North Korea'] = 'North Korean'
+            country_nationality_map['South Korea'] = 'South korean'
+            country_nationality_map['Himalaya'] = 'Himalayan'
+            country_nationality_map['Venezuela'] = 'Venezuelan'
+            country_nationality_map['Kirghizia'] = 'Kirghizian'
+            country_nationality_map['Venezuela'] = 'Venezuelans'
+            country_nationality_map['Shiite'] = 'Shiites'
+
     recategorizer = Recategorizer(
         train_data=args.amr_train_file,
         build_utils=args.build_utils,
-        util_dir=args.dump_dir, lang=args.lang, countries = country_nationality_map)
+        util_dir=args.dump_dir, lang=args.lang, countries=country_nationality_map)
 
     for file_path in args.amr_files:
         with open(file_path + '.recategorize', 'w', encoding='utf-8') as f:
@@ -383,6 +393,4 @@ if __name__ == '__main__':
                 try:
                     f.write(str(amr) + '\n\n')
                 except:
-                    print(amr.sentence)
                     f.write(str(orig_amr)+'\n\n')
-
