@@ -67,7 +67,7 @@ Data used for training and development are found in the following folder:
  
     cd xl-amr/data/AMR/europarl_en_de_es_it/
     
-<sub><sup>*We do not produce silver AMR graphs for Chinese in this approach since Europarl does not cover Chinese language. </sup></sub>
+<sub>*We do not produce silver AMR graphs for Chinese in this approach since Europarl does not cover Chinese language.</sub>
 
 #### 3.2 Annotation Projection through automatic translations
 We machine translated sentences of AMR 2.0 using [OPUS-MT](https://huggingface.co/transformers/model_doc/marian.html) pretrained models and filtered less accurate translations. The translated sentences are found in the following folder: 
@@ -151,7 +151,7 @@ For postprocessing two steps are needed:
     
  ```lang -> {en, de, es, it}```
  
- <sub><sup>*For Chinese we use [Babelfy](http://babelfy.org/) as shown in [Babelfy HTTP API example](http://babelfy.org/guide) . </sup></sub>
+ <sub>*For Chinese we use [Babelfy](http://babelfy.org/) as shown in [Babelfy HTTP API example](http://babelfy.org/guide).</sub>
  
        
 2 - Run postprocessing script:
