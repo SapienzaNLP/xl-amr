@@ -59,7 +59,7 @@ Project English test AMR graphs across languages:
    
     
 ## 3. Silver dataset for {Chinese, German, Italian, Spanish}
-
+NOTE: The data and related artifacts can be downloaded from [to be uploaded soon](#).
 #### 3.1 Annotation Projection through parallel sentences
 These data make use of Europarl corpus [1]  and the English AMR parser by Zhang et al. 2019 [2] to parse the English side of the parallel corpus.
 
