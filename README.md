@@ -17,7 +17,7 @@ If you find either our code or our release datasets useful in your work, please 
 ```
 
 
-## SILVER DATA, ARTIFACTS AND MODEL CHECKPOINTS COMING SOON!!
+## SILVER DATA, ARTIFACTS AND MODEL CHECKPOINTS ARE COMING SOON!!
 
 
 
