@@ -179,6 +179,3 @@ We adopted modules or code snippets from the open-source projects:
 - [huggingface](https://huggingface.co/transformers/)
 
 Thank you for making research easier!
-
-## License
-[MIT](LICENSE)
