@@ -17,6 +17,10 @@ If you find either our code or our release datasets useful in your work, please 
 ```
 
 
+## SILVER DATA, ARTIFACTS AND MODEL CHECKPOINTS COMING SOON!!
+
+
+
 ## 1. Install 
 
 Create a conda environment with **Python 3.6** and **PyTorch 1.5.0** and install the dependencies. [requirements.txt](requirements.txt).
