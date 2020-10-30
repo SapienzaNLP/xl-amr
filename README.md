@@ -1,6 +1,6 @@
 # XL-AMR: Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
 
-XL-AMR ([Camera ready print](https://www.researchgate.net/publication/344667761_XL-AMR_Enabling_Cross-Lingual_AMR_Parsing_with_Transfer_Learning_Techniques)) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
+XL-AMR ([Camera ready print](https://github.com/SapienzaNLP/xl-amr/blob/master/docs/EMNLP2020_XL_AMR.pdf)) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
 
 
 If you find either our code or our release datasets useful in your work, please cite us with:
@@ -17,7 +17,7 @@ If you find either our code or our release datasets useful in your work, please 
 ```
 
 
-## SILVER DATA, ARTIFACTS AND MODEL CHECKPOINTS ARE COMING SOON!!
+## SILVER DATA AND ARTIFACTS ARE COMING SOON!!
 
 
 
@@ -173,7 +173,19 @@ For postprocessing two steps are needed:
 [1] Philipp Koehn. 2005. [Europarl: A Parallel Corpus for Statistical Machine  Translation](http://homepages.inf.ed.ac.uk/pkoehn/publications/europarl-mtsummit05.pdf). In Conference Proceedings: the tenth Machine Translation Summit, pages 79–86, Phuket, Thailand. AAMT, AAMT. 
 
 [2] Sheng Zhang, Xutai Ma, Kevin Duh, and Benjamin Van Durme. 2019. [AMR Parsing as Sequence-to-Graph Transduction](https://www.aclweb.org/anthology/P19-1009/). In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics, pages 80–94, Florence, Italy. Association for Computational Linguistics.
+
+## License
+This project is released under the CC-BY-NC 4.0 license (see `LICENSE.txt`). If you use EWISER, please put a link to this repo.
+
+
 ## Acknowledgements
+
+The authors gratefully acknowledge the support of the <a href="http://mousse-project.org">ERC Consolidator Grant MOUSSE</a> No. 726487 under the European
+Union's Horizon 2020 research and innovation programme.
+The authors gratefully acknowledgethe support of the <a href="http://mousse-project.org">ERC ConsolidatorGrant MOUSSE</a> No. 726487 and the <a href="https://elex.is/">ELEXIS</a> project No. 731015 under the European Union’s Horizon 2020 research and innovation programme. 
+
+This work was supported in part by the MIUR under the grant "Dipartimenti di eccellenza 2018-2022" of the Department of Computer Science of the Sapienza University of Rome.
+
 
 We adopted modules or code snippets from the open-source projects:
 - [stog](https://github.com/sheng-z/stog)
@@ -183,3 +195,8 @@ We adopted modules or code snippets from the open-source projects:
 - [huggingface](https://huggingface.co/transformers/)
 
 Thank you for making research easier!
+
+
+
+
+
