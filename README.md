@@ -180,8 +180,6 @@ This project is released under the CC-BY-NC 4.0 license (see `LICENSE.txt`). If 
 
 ## Acknowledgements
 
-The authors gratefully acknowledge the support of the <a href="http://mousse-project.org">ERC Consolidator Grant MOUSSE</a> No. 726487 under the European
-Union's Horizon 2020 research and innovation programme.
 The authors gratefully acknowledgethe support of the <a href="http://mousse-project.org">ERC ConsolidatorGrant MOUSSE</a> No. 726487 and the <a href="https://elex.is/">ELEXIS</a> project No. 731015 under the European Union’s Horizon 2020 research and innovation programme. 
 
 This work was supported in part by the MIUR under the grant "Dipartimenti di eccellenza 2018-2022" of the Department of Computer Science of the Sapienza University of Rome.
