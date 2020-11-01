@@ -23,7 +23,7 @@ If you find either our code or our release datasets useful in your work, please 
 
 ## 1. Install 
 
-Create a conda environment with **Python 3.6** and **PyTorch 1.5.0** and install the dependencies. [requirements.txt](requirements.txt).
+Create a conda environment with **Python 3.6** and **PyTorch 1.5.0** and install the dependencies [requirements.txt](requirements.txt).
 
 Via conda:
 
