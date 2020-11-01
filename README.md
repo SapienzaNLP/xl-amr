@@ -175,7 +175,7 @@ For postprocessing two steps are needed:
 [2] Sheng Zhang, Xutai Ma, Kevin Duh, and Benjamin Van Durme. 2019. [AMR Parsing as Sequence-to-Graph Transduction](https://www.aclweb.org/anthology/P19-1009/). In Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics, pages 80–94, Florence, Italy. Association for Computational Linguistics.
 
 ## License
-This project is released under the CC-BY-NC 4.0 license (see `LICENSE.txt`). If you use XL-AMR, please put a link to this repo.
+This project is released under the CC-BY-NC 4.0 license (see `LICENSE`). If you use XL-AMR, please put a link to this repo.
 
 
 ## Acknowledgements
