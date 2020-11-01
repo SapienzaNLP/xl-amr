@@ -16,10 +16,7 @@ If you find either our code or our release datasets useful in your work, please 
 }
 ```
 
-
 ## SILVER DATA AND ARTIFACTS ARE COMING SOON!!
-
-
 
 ## 1. Install 
 
