@@ -1,18 +1,22 @@
 # XL-AMR: Enabling Cross-Lingual AMR Parsing with Transfer Learning Techniques
 
-XL-AMR ([Camera ready print](https://github.com/SapienzaNLP/xl-amr/blob/master/docs/EMNLP2020_XL_AMR.pdf)) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
+XL-AMR ([Camera ready print](https://www.aclweb.org/anthology/2020.emnlp-main.195.pdf)) is a cross-lingual  AMR parser that exploits the existing training data in English to transfer semantic representations across languages. The achieved results shed light on the applicability of AMR  as an interlingua and set the state of the art in Chinese, German, Italian and Spanish cross-lingual AMR parsing. Furthermore, a detailed qualitative analysis shows that the proposed parser can overcome common translation divergences among languages.
 
 
 If you find either our code or our release datasets useful in your work, please cite us with:
 ```
 @inproceedings{blloshmi-etal-2020-enabling,
-  title={{XL}-{AMR}: {E}nabling {C}ross-{L}ingual {AMR} Parsing with Transfer Learning Techniques},
-  author={Blloshmi, Rexhina and Tripodi, Rocco and Navigli, Roberto},
-  booktitle={Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing, EMNLP2020},
-  publisher={Association for Computational Linguistics},
-  year      = {2020},
-  month     = nov,
-  address = {Online}
+    title = "{XL-AMR}: {E}nabling Cross-Lingual {AMR} Parsing with Transfer Learning Techniques",
+    author = "Blloshmi, Rexhina  and
+      Tripodi, Rocco  and
+      Navigli, Roberto",
+    booktitle = "Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+    month = nov,
+    year = "2020",
+    address = "Online",
+    publisher = "Association for Computational Linguistics",
+    url = "https://www.aclweb.org/anthology/2020.emnlp-main.195",
+    pages = "2487--2500",
 }
 ```
 
