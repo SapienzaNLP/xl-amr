@@ -20,7 +20,7 @@ If you find either our code or our release datasets useful in your work, please 
 }
 ```
 
-## SILVER DATA AND ARTIFACTS ARE COMING SOON!!
+#### If you need our silver data and/or XL-AMR checkpoints, please contact us by email! 
 
 ## 1. Install 
 
