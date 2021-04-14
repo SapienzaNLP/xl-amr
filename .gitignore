@@ -1,0 +1,9 @@
+.idea/*
+*.pyc
+__pycache__/
+*egg-info/
+*.swp
+*.pt
+*.th
+models/*
+!.gitignore

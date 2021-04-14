@@ -53,7 +53,7 @@ class Recategorizer:
             self.stemmer = None
         else:
             self.stemmer = nltk.stem.SnowballStemmer(code2lang[lang]).stem
-        self.stopwords = [x.rstrip().lower() for x in open("data/babelnet/stopwords_{}.txt".format(lang)).readlines()]
+        self.stopwords = [x.rstrip().lower() for x in open("data/cross-lingual-babelnet_mappings/stopwords_{}.txt".format(lang)).readlines()]
         self.train_data = train_data
         self.build_utils = build_utils
         self.named_entity_count = 0
@@ -356,7 +356,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     if args.lang != "en":
-        enNM2langNM = json.load(open(os.path.join("data/babelnet/", "name_en_{}_bn_map.json".format(args.lang)), "r"))
+        enNM2langNM = json.load(open(os.path.join("data/cross-lingual-babelnet_mappings/", "name_en_{}_bn_map.json".format(args.lang)), "r"))
     else:
         enNM2langNM = None
 

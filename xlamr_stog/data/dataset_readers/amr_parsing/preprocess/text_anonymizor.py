@@ -359,17 +359,17 @@ def load_name_bn_map(json_file):
 
     return lang_nm2en_nm
 
-def load_name_bn_wiki_map(file, reliable_sources_lang):
+def load_name_bn_wiki_map(file):
     lang_nm2en_nm = dict()
 
     with open(file, "r", encoding='utf-8') as infile:
         for line in infile:
+            if line.startswith("#"): continue
             fields=line.rstrip().split()
             lang_nm = fields[2].replace("-","_")
 
             if lang_nm in lang_nm2en_nm: continue
             if lang_nm.islower(): continue
-            if fields[-1] not in reliable_sources_lang: continue
             if ":EN:" in fields[1]:
                 en_wiki = fields[1].split(":EN:")[-1]
             elif "#n#1" in fields[1]:
@@ -407,11 +407,6 @@ if __name__ == "__main__":
     parser.add_argument('--exclude_ners', action="store_true", help="consider NER tags for entities not found in training.")
     args = parser.parse_args()
 
-    reliable_sources_lang = dict()
-    reliable_sources_lang["it"] = set("WIKI OMWN MSTERM FRAMENET VERBNET OMWN_IT IWN OMWIKI".split())
-    reliable_sources_lang["es"] = set("WIKI MSTERM FRAMENET VERBNET MRC_ES OMWIKI".split())
-    reliable_sources_lang["de"] = set("WIKI OMWN MSTERM FRAMENET VERBNET OMWIKI WIKIDATA".split())
-    reliable_sources_lang["zh"] = set("WIKI OMWN_ZH OMWN_CWN".split())
 
     if args.lang=="en":
         text_anonymizor = TextAnonymizor.from_json(os.path.join(args.util_dir,
@@ -422,10 +417,10 @@ if __name__ == "__main__":
 
     else:
         text_anonymizor = TextAnonymizor.from_json(os.path.join(args.util_dir,"text_anonymization_en-{}.json".format(args.lang)))
-        lang_stopwords = set([x.rstrip() for x in open("data/babelnet/stopwords_{}.txt".format(args.lang))])
+        lang_stopwords = set([x.rstrip() for x in open("data/cross-lingual-babelnet_mappings/stopwords_{}.txt".format(args.lang))])
 
-        lang2en_span=load_name_span_map("data/babelnet/name_span_en_{}_map_amr_bn.json".format(args.lang), args.lang)
-        lang2en_bn=load_name_bn_wiki_map("data/babelnet/namedEntity_wiki_synsets.{}.tsv".format(args.lang.upper()), reliable_sources_lang[args.lang])
+        lang2en_span=load_name_span_map("data/cross-lingual-babelnet_mappings/name_span_en_{}_map_amr_bn.json".format(args.lang), args.lang)
+        lang2en_bn=load_name_bn_wiki_map("data/cross-lingual-babelnet_mappings/namedEntity_wiki_synsets.{}.tsv".format(args.lang.upper()))
 
     for amr_file in args.amr_file:
         with open(amr_file + ".recategorize{}".format("_noner" if args.exclude_ners else ""), "w", encoding="utf-8") as f:

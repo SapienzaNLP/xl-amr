@@ -123,14 +123,14 @@ class AMR:
                 try:
                     fields.append(str(v))
                 except:
-                    fields.append("BAD_GRAPH")
+                    fields.append("(b / BAD_GRAPH)")
             elif k == 'graph_pred':
                 if v==None: continue
                 try:
                     fields.append("\n#****GOLD_GRAPH*******\n")
                     fields.append(str(v))
                 except:
-                    fields.append("BAD_GRAPH")
+                    fields.append("(b / BAD_GRAPH)")
             else:
                 if not isinstance(v, str):
                     v = json.dumps(v)
