@@ -20,13 +20,6 @@ If you find either our code or our release datasets useful in your work, please 
 }
 ```
 
-#### If you need our silver data based on AMR 2.0 translations please contact us by email! 
-
-Download XL-AMR best checkpoints* per language here: [CHECKPOINTS](https://drive.google.com/drive/folders/1_tu6EJET20pi5IG3T-807hDpBjtkPs7W?usp=sharing)
-
-<sub>*Please take care of the paths in the config file according to your file structure in case of exceptions, before sending an email or opening an issue.
-
-
 ## 1. Install 
 
 Create a conda environment with **Python 3.6** and **PyTorch 1.5.0**, install the dependencies [requirements.txt](requirements.txt) and download the artifacts**.
@@ -39,6 +32,14 @@ Via conda:
     bash scripts/download_artifacts.sh    
 
 **Also please unzip all the zipped files you find inside the data folder before continuing with the other steps.
+
+
+### If you need our silver data based on AMR 2.0 translations please contact us by email! 
+
+Download XL-AMR best checkpoints* per language here: [CHECKPOINTS](https://drive.google.com/drive/folders/1_tu6EJET20pi5IG3T-807hDpBjtkPs7W?usp=sharing)
+
+<sub>*Please take care of the paths in the config file according to your file structure in case of exceptions, before sending an email or opening an issue.
+
 
 ## 2. Gold Dataset
 1 - Download AMR 2.0 ([LDC2017T10](https://catalog.ldc.upenn.edu/LDC2017T10)) and AMR 2.0 - Four Translations ([LDC2020T07](https://catalog.ldc.upenn.edu/LDC2020T07)).
