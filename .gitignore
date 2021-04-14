@@ -7,3 +7,4 @@ __pycache__/
 *.th
 models/*
 !.gitignore
+/data/amr_2.0/
