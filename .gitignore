@@ -8,3 +8,6 @@ __pycache__/
 models/*
 !.gitignore
 /data/amr_2.0/
+/data/
+xl-amr_bilingual*/
+xl-amr_lang*/

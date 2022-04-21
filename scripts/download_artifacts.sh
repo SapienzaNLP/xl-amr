@@ -17,8 +17,8 @@ echo "Downloading tools."
 mkdir -p tools
 git clone https://github.com/ChunchuanLv/amr-evaluation-tool-enhanced.git tools/amr-evaluation-tool-enhanced
 
-curl -O http://www.airpedia.org/tint/0.2/tint-runner-0.2-bin.tar.gz
-tar -xzvf tint-runner-0.2-bin.tar.gz -C tools
-rm tint-runner-0.2-bin.tar.gz
+# curl -O http://www.airpedia.org/tint/0.2/tint-runner-0.2-bin.tar.gz
+# tar -xzvf tint-runner-0.2-bin.tar.gz -C tools
+# rm tint-runner-0.2-bin.tar.gz
 
 
