@@ -11,3 +11,4 @@ models/*
 /data/
 xl-amr_bilingual*/
 xl-amr_lang*/
+venv/

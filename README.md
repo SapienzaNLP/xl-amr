@@ -19,6 +19,9 @@ source activate xlamr
 pip install -r requirements.txt
 bash scripts/download_artifacts.sh    
 ```
+
+> As per 2022-04-25 the newest `overrides` package [breaks current repo](https://github.com/allenai/allennlp/issues/5217), so try to downgrade it to `3.1.0` before proceeding
+
 **Also please unzip all the zipped files you find inside the data folder before continuing with the other steps.
 
 ### Preparing Numberbatch
@@ -33,6 +36,20 @@ zgrep -E "/c/(ms|en)/" numberbatch-19.08.txt.gz > numberbatch-19.08.en_ms.txt
 # Replace the pattern /c/{lang}/token into {lang}_token inplace
 sed -i -E "s/\/c\/([^\/]+)\/([^\\s]+)/\1_\2/g" numberbatch-19.08.en_ms.txt
 ```
+
+then copy it into `numberbatch/` folder
+
+### Preparing silver data
+
+For the silver data, you can email us for details on translated data, but you can also prepare your own transalted and parallel data.
+Translated data can be processed by following this process: 
+1. extracting sentences using the script [`scripts/extract_sentences.sh'](scripts/extract_sentences.sh). 
+2. Translate the sentences using MTL model (marianMT for example)
+3. Project the sentences to their AMR graph using [`scripts/project_train_dev_unfiltered.sh`](scripts/project_train_dev_unfiltered.sh). Also adjust the variable to reflect your translated data information. 
+
+For the process to replicate the original thesis, we also need to filter sentences with low similarity  score.
+
+# TODO: Create script to filter the resulting silver data with low similarity score (how low?)
 
 ### If you need our silver data based on AMR 2.0 translations please contact us by email! 
 
@@ -66,6 +83,35 @@ Prepare training/dev/test datas plit:
 ./scripts/prepare_data.sh -v 2 -p data/AMR/LDC2017T10
 ``` 
 3 - Unzip the Translations corpus to `data/AMR/LDC2020T07` and copy ```*.txt``` files into ```data/amr_2.0/translations/```  .
+
+### Expected directory tree
+```bash
+$ tree data/AMR -L 3
+data/AMR
+├── amr_2.0
+│   ├── (train|dev|test)[.snt].txt
+│   └── translations
+│       └── amr-release-2.0-amrs-test-(bolt|consensus|dfa|proxy|xinhua).sentences.ms.txt
+├── amr_2.0_ms
+│   └── translations
+│       └── (dev|train)_(ms).txt
+├── en_es_it_de_zh_utils
+│   ├── countries.json
+│   ├── entity_type_cooccur_counter_en_zh.json
+│   ├── frame_lemma_counter[.json]
+│   ├── lemma_frame_counter[.json]
+│   ├── name_op_cooccur_counter[_en_(de|es|it|zsh)].json
+│   ├── name_type_cooccur_counter_en_zh.json
+│   ├── senseless_node_counter[.json]
+│   ├── text_anonymization_en-(de|es|it|zsh).json
+│   ├── wiki_span_cooccur_counter[_en_(de|es|it|zsh)].json
+│   └── wiki_span_cooccur_counter.json
+├── europarl_en_de_es_it
+│   └── (dev|train)_(de|en|it|es).txt[.features.recat]
+└── panl_en_ms
+    ├── (dev|train)_(en|id)[.pred].txt
+    └── (dev|train)_(en|id).txt.(features[.recat]|preproc)
+```
 
 Project English test AMR graphs across languages:
 ```
@@ -124,6 +170,8 @@ Run the script ```lang -> {en, zh, de, es, it}``` and ```dataset_type -> {silver
  
 #### 4.2 Re-categorization and Anonymization
 
+> TODO: Create expected dictionary tree
+
 To preprocess the training and dev data run: 
 
     ./scripts/preprocess_multlingual.sh {data_dir} {dataset_type}
@@ -140,7 +188,7 @@ XL-AMR models are trained in one GeForce GTX TITAN X GPU.
 We provide the params ```.yaml``` files for all the models in the paper. 
 
 
-    python -u -m stog.commands.train params/{method}/{xl-amr_configuration}.yaml
+    python -u -m xlamr_stog.commands.train params/{method}/{xl-amr_configuration}.yaml
 
 ```method -> {zeroshot, xl-amr_par, xl-amr_trns}```
 ## 6. Prediction

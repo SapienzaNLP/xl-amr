@@ -1,5 +1,18 @@
 # Parameters Meaning
 
+- [Parameters Meaning](#parameters-meaning)
+  - [Zero-Shot](#zero-shot)
+  - [XL-AMR Parallel](#xl-amr-parallel)
+    - [`par_amr` vs `par`](#par_amr-vs-par)
+    - [Bilingual](#bilingual)
+    - [Multilingual](#multilingual)
+    - [Language Specific](#language-specific)
+  - [XL-AMR Translation](#xl-amr-translation)
+  - [XL-AMR Parallel and Translaction](#xl-amr-parallel-and-translaction)
+  - [Comparing with Provided Checkpoint](#comparing-with-provided-checkpoint)
+- [How to adapt it to Indonesian Language?](#how-to-adapt-it-to-indonesian-language)
+  - [Resources](#resources)
+
 This part will document about the difference and context between current parameter to adapt it into Indonesian Language. To make it clear, all of the data for `mimick_test` is from AMR 2.0 gold-standard translated sentence. Also somehow output prediction will be saved into `test.mult.*` file.
 
 ## Zero-Shot
@@ -45,6 +58,7 @@ Another thing to notice is that for trans params, the `vocabulary` for `decoder_
 ## XL-AMR Parallel and Translaction
 
 This params is not included in the repository, but looking we need to cross check on how it works inside the paper.
+> Actually after cross-checking the paper, it turns out this is not included into the configuration
 
 ## Comparing with Provided Checkpoint
 
@@ -62,7 +76,7 @@ The following is several resources of configuration that may need to be changed 
 - `bert.pretrained_model_dir` : `data/bert-base-multilingual-cased` is sufficient for basic experiment Additionally we'll use 
   - `data/mbart-base-cased`
   - `data/mt5-base-cased`
-- `generator.mult_token_mapping` : `data/numberbatch/{}_en_neighbors_model.json` is sufficent, but we need to create one for `ms` language
+- `generator.mult_token_mapping` : `data/numberbatch/{}_en_neighbors_model.json` is sufficent, but we need to create one for `ms` language (was done using [this notebook](https://colab.research.google.com/drive/1SgSlDFD1uDFfFcaN08_KutDu4okkH2V0?usp=sharing))
 - `mimick_test.data` : `- !!python/list [de, data/AMR/amr_2.0/test_de.txt.features.recat]` need to be changed into
   - `- !!python/list [ms, data/AMR/amr_2.0/test_ms.txt.features.recat]` and we need to create this using translator-annotated test data
 - `mimick_test.prediction` : `test.mult.de.pred.txt` need to be `test.mult.ms.pred.txt`
