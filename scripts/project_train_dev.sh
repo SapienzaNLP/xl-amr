@@ -3,7 +3,7 @@
 set -e
 
 dir=data/AMR/amr_2.0
-out_path=data/AMR/amr_2.0_zh_de_es_it
+out_path=data/AMR/amr_2.0_ms
 translations=${out_path}/translations
 
 python -u -m xlamr_stog.data.dataset_readers.amr_projection.project_train_dev \

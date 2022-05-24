@@ -10,8 +10,8 @@ curl -o data/bert-base-multilingual-cased/bert-base-multilingual-cased-vocab.txt
     https://s3.amazonaws.com/models.huggingface.co/bert/bert-base-cased-vocab.txt
 rm bert-base-multilingual-cased.tar.gz
 
-python -u -m xlamr_stog/data/data_misc/numberbatch_emb.py
-rm data/numberbatch/out_*
+# python -u -m xlamr_stog/data/data_misc/numberbatch_emb.py
+# rm data/numberbatch/out_*
 
 echo "Downloading tools."
 mkdir -p tools

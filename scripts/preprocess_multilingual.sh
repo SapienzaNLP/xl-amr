@@ -4,8 +4,8 @@ set -e
 
 data_dir=$1
 dataset_type=$2
-declare -a StringArray=("en" "de" "es" "it" "zh")
-util_dir=data/AMR/en_es_it_de_zh_utils
+declare -a StringArray=("en" "ms")
+util_dir=data/AMR/en_ms_utils
 
 for lang in ${StringArray[@]}; do
   echo $lang
@@ -45,7 +45,8 @@ for lang in ${StringArray[@]}; do
     mv ${train_data}.input_clean.recategorize.nosense ${train_data}.recat
     mv ${dev_data}.input_clean.recategorize.nosense ${dev_data}.recat
     rm ${data_dir}/*.input_clean*
-
+  else
+    printf "$train_data and $dev_data not found, continuing"
   fi
 
 done
