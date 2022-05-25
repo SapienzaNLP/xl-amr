@@ -21,7 +21,7 @@ def batches(lines):
 if __name__ == '__main__':
     #translator = Translator(service_urls = ['translate.google.com', 'translate.google.it'])
     src = 'en'  # source language
-    trg = 'es'  # target language
+    trg = 'id'  # target language
     #mname = f'Helsinki-NLP/opus-mt-{src}-{trg}'
     mname=f'Helsinki-NLP/opus-mt-ROMANCE-en'
     device = torch.device("cuda")

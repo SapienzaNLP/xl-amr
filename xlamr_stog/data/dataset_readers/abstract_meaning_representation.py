@@ -7,7 +7,7 @@ import json
 from overrides import overrides
 # NLTK is so performance orientated (ha ha) that they have lazy imports. Why? Who knows.
 from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
-from xlamr_stog.data.dataset_readers.amr_parsing.amr import AMRGraph
+from xlamr_stog.data.dataset_readers.amr_parsing.amr import AMR, AMRGraph
 from xlamr_stog.utils.file import cached_path
 from xlamr_stog.data.dataset_readers.dataset_reader import DatasetReader
 from xlamr_stog.data.fields import TextField, SpanField, SequenceLabelField, ListField, MetadataField, Field, AdjacencyField, ArrayField
@@ -76,6 +76,7 @@ class AbstractMeaningRepresentationDatasetReader(DatasetReader):
             self.tgt_src_replacements["es"] = dict()
             self.tgt_src_replacements["de"] = dict()
             self.tgt_src_replacements["zh"] = dict()
+            self.tgt_src_replacements["ms"] = dict()
         else:
             self.tgt_src_replacements = tgt_src_replacements
 
@@ -134,7 +135,7 @@ class AbstractMeaningRepresentationDatasetReader(DatasetReader):
         self.report_coverage()
 
     @overrides
-    def text_to_instance(self, amr, lang = None, source_copy= True, split="test") -> Instance:
+    def text_to_instance(self, amr:AMR, lang = None, source_copy= True, split="test") -> Instance:
         # pylint: disable=arguments-differ
 
         fields: Dict[str, Field] = {}

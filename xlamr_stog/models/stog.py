@@ -1383,7 +1383,7 @@ class STOG(Model):
                 mask.unsqueeze(1))
 
     def get_other_lang(self, copied_token, copied_token_encoder_index, language):
-        langs = [language] if language is not None else ["it","de","es"]
+        langs = [language] if language is not None else ["it","de","es","ms"]
         for lang in langs:
             flag_lang = False
             lang_token = ""

@@ -1,8 +1,11 @@
 import os
 import json
 from collections import defaultdict
+from typing import List
 
 import nltk
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from xlamr_stog.data.dataset_readers.amr_parsing.amr import AMR
 
 from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
 from xlamr_stog.data.dataset_readers.amr_parsing.amr_concepts import Entity, Date, Score, Quantity, Ordinal, Polarity, Polite, URL
@@ -47,10 +50,13 @@ class Recategorizer:
 
     def __init__(self, train_data=None, build_utils=False, util_dir=None, lang="en", countries=None):
 
-        code2lang = {"en": "english", "it": "italian", "es": "spanish", "de": "german", "zh": "chinese"}
+        code2lang = {"en": "english", "it": "italian", "es": "spanish", "de": "german", "zh": "chinese", "ms": "malay"}
 
         if lang == "zh":
             self.stemmer = None
+        elif lang == "ms":
+            factory = StemmerFactory()
+            self.stemmer = factory.create_stemmer().stem
         else:
             self.stemmer = nltk.stem.SnowballStemmer(code2lang[lang]).stem
         self.stopwords = [x.rstrip().lower() for x in open("data/cross-lingual-babelnet_mappings/stopwords_{}.txt".format(lang)).readlines()]
@@ -74,6 +80,7 @@ class Recategorizer:
 
         self.name_type_cooccur_counter = defaultdict(lambda: defaultdict(int))
         self.name_op_cooccur_counter = defaultdict(lambda: defaultdict(int))
+        self.name_span_en_lang_map_amr_bn = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
         self.wiki_span_cooccur_counter = defaultdict(lambda: defaultdict(int))
         self.build_entity_map = False
         self.entity_type_cooccur_counter = defaultdict(lambda: defaultdict(int))
@@ -141,25 +148,30 @@ class Recategorizer:
 
     def _dump_utils(self, directory):
         ensure_ascii = True
+        suffix = "" if self.lang == "en" else f"_en_{self.lang}"
         if self.lang == "zh":
             ensure_ascii = False
-        with open(os.path.join(directory, 'name_type_cooccur_counter.json'), 'w', encoding='utf-8') as f:
+        if self.lang != "en":
+            with open(os.path.join(directory, f'name_span{suffix}_map_amr_bn.json'), 'w', encoding='utf-8') as f:
+                json.dump(self.name_span_en_lang_map_amr_bn, f, indent=4, ensure_ascii=ensure_ascii)
+        with open(os.path.join(directory, f'name_type_cooccur_counter{suffix}.json'), 'w', encoding='utf-8') as f:
             json.dump(self.name_type_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
-        with open(os.path.join(directory, 'name_op_cooccur_counter.json'), 'w', encoding='utf-8') as f:
+        with open(os.path.join(directory, f'name_op_cooccur_counter{suffix}.json'), 'w', encoding='utf-8') as f:
             json.dump(self.name_op_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
-        with open(os.path.join(directory, 'wiki_span_cooccur_counter.json'), 'w', encoding='utf-8') as f:
+        with open(os.path.join(directory, f'wiki_span_cooccur_counter{suffix}.json'), 'w', encoding='utf-8') as f:
             json.dump(self.wiki_span_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
-        with open(os.path.join(directory, 'entity_type_cooccur_counter.json'), 'w', encoding='utf-8') as f:
+        with open(os.path.join(directory, f'entity_type_cooccur_counter{suffix}.json'), 'w', encoding='utf-8') as f:
             json.dump(self.entity_type_cooccur_counter, f, indent=4, ensure_ascii=ensure_ascii)
 
     def _load_utils(self, directory):
-        with open(os.path.join(directory, 'name_type_cooccur_counter.json'), encoding='utf-8') as f:
+        suffix = "" if self.lang == "en" else f"_en_{self.lang}"
+        with open(os.path.join(directory, f'name_type_cooccur_counter{suffix}.json'), encoding='utf-8') as f:
             self.name_type_cooccur_counter = json.load(f)
-        with open(os.path.join(directory, 'name_op_cooccur_counter.json'), encoding='utf-8') as f:
+        with open(os.path.join(directory, f'name_op_cooccur_counter{suffix}.json'), encoding='utf-8') as f:
             self.name_op_cooccur_counter = json.load(f)
-        with open(os.path.join(directory, 'wiki_span_cooccur_counter.json'), encoding='utf-8') as f:
+        with open(os.path.join(directory, f'wiki_span_cooccur_counter{suffix}.json'), encoding='utf-8') as f:
             self.wiki_span_cooccur_counter = json.load(f)
-        with open(os.path.join(directory, 'entity_type_cooccur_counter.json'), encoding='utf-8') as f:
+        with open(os.path.join(directory, f'entity_type_cooccur_counter{suffix}.json'), encoding='utf-8') as f:
             self.entity_type_cooccur_counter = json.load(f)
 
     def _map_name_node_type(self, name_node_type):
@@ -173,7 +185,7 @@ class Recategorizer:
         else:
             return Entity.unknown_entity_type
 
-    def recategorize_file(self, file_path):
+    def recategorize_file(self, file_path:str):
         for i, amr in enumerate(AMRIO.read(file_path, lang=self.lang), 1):
             orig_amr = amr
             self.recategorize_graph(amr)
@@ -182,7 +194,7 @@ class Recategorizer:
                 logger.info('Processed {} examples.'.format(i))
         logger.info('Done.\n')
 
-    def recategorize_graph(self, amr):
+    def recategorize_graph(self, amr:AMR):
         if amr.lang == "zh":
             amr.stems = amr.lemmas
         else:
@@ -200,7 +212,7 @@ class Recategorizer:
         self.recategorize_quantities(amr)
         self.recategorize_urls(amr)
 
-    def resolve_name_node_reentrancy(self, amr):
+    def resolve_name_node_reentrancy(self, amr:AMR):
         graph = amr.graph
         for node in graph.get_nodes():
             if graph.is_name_node(node):
@@ -216,7 +228,7 @@ class Recategorizer:
                         graph.remove_edge(source, target)
                         graph.add_edge(source, name_head, label)
 
-    def remove_wiki(self, amr):
+    def remove_wiki(self, amr:AMR):
         graph = amr.graph
         for node in graph.get_nodes():
             for attr, value in node.attributes.copy():
@@ -224,13 +236,13 @@ class Recategorizer:
                     self.removed_wiki_count += 1
                     graph.remove_node_attribute(node, attr, value)
 
-    def remove_negation(self, amr):
+    def remove_negation(self, amr:AMR):
         polarity = Polarity(amr)
         polarity.remove_polarity()
         polite = Polite(amr)
         polite.remove_polite()
 
-    def recategorize_name_nodes(self, amr):
+    def recategorize_name_nodes(self, amr:AMR):
         graph = amr.graph
         entities = []
         for node, _, _ in graph.get_list_node(replace_copy=False):
@@ -320,7 +332,7 @@ class Recategorizer:
         date._get_span(alignment, amr)
         return date
 
-    def _update_utils(self, entities, amr):
+    def _update_utils(self, entities:List[Entity], amr:AMR):
         if not self.build_entity_map:
             for entity in entities:
                 wiki_title = amr.graph.get_name_node_wiki(entity.node)
@@ -330,6 +342,11 @@ class Recategorizer:
                     text_span = text_span.lower()
                     self.wiki_span_cooccur_counter[text_span][wiki_title] += 1
                     self.name_op_cooccur_counter[text_span][' '.join(entity.get_ops())] += 1
+                    if not self.name_span_en_lang_map_amr_bn[text_span]:
+                        self.name_span_en_lang_map_amr_bn[text_span] = {"en":defaultdict(int), "ms":defaultdict(int)}
+                    self.name_span_en_lang_map_amr_bn[text_span]["en"][' '.join(entity.get_ops())] += 1
+                    if entity.is_bn: 
+                        self.name_span_en_lang_map_amr_bn[text_span]["ms"][' '.join(entity.get_ops(en=False))] += 1
 
                 if len(entity.span) == 0:
                     continue

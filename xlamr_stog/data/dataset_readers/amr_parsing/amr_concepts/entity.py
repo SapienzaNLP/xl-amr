@@ -113,6 +113,8 @@ class Entity:
         self.confidence = confidence
         self.alignment = alignment
         self.debug = False
+        self.is_bn = False
+        self.non_en_ops = None
 
     def __str__(self):
         return 'node:{}\nalignment:{}'.format(str(self.node), self.alignment)
@@ -138,8 +140,10 @@ class Entity:
         spans.append(' '.join(span))
         return [span for span in spans if len(span) > 0]
 
-    def get_ops(self):
+    def get_ops(self, en=True):
         ops = []
+        if not en:
+            return self.non_en_ops
         for op in self.node.ops:
             op = str(op)
             if re.search(r'^".*"$', op):
@@ -196,6 +200,7 @@ class Entity:
                 alignment = cls.get_alignment_for_ops(non_en_ops, amr, babelnet_mapping, stemmer)
                 if len(alignment)==0: continue
                 entity = cls(node=node, alignment=alignment)
+                entity.non_en_ops=non_en_ops
                 entity._get_aligned_info(amr, backup_ner_type, entity_type_lut, stopwords=stopwords)
                 if entity_bn is None:
                     entity_bn = entity
@@ -213,6 +218,7 @@ class Entity:
 
         if entity_bn is not None:
             entity = entity_en if entity_en.confidence>entity_bn.confidence else entity_bn
+            entity.is_bn = entity_en.confidence <= entity_bn.confidence
         else:
             entity = entity_en
         return entity

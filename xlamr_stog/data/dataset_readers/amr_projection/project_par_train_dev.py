@@ -21,22 +21,16 @@ class Dataset(object):
     def read_file_gold_amr(self, lang_sentences):
         self.read_translations(lang_sentences)
 
-        with open(self.dump_dir + '{}_{}.txt'.format(self.split, self.lang), 'w', encoding='utf-8') as f:
+        with open(self.dump_dir + '{}_{}.txt.preproc'.format(self.split, self.lang), 'w', encoding='utf-8') as f:
             for i, amr in enumerate(AMRIO.read(os.path.join(self.in_path))):
                 if i % 1000 == 0:
                     logger.info('{} processed.'.format(i))
 
-                sentence = amr.sentence
-                if amr.id not in self.translations: continue
+                
+                if amr.id not in self.translations: print(f"amr id {amr.id} not found");continue
                 parallel_sentence_amr = self.translations[amr.id]
-
-                amr.sentence = parallel_sentence_amr.sentence
-                amr.tokens = None
-                amr.lemmas = None
-                amr.pos_tags = None
-                amr.ner_tags = None
-                amr.misc = ["# ::tok-{}".format("en") + " " + sentence]
-                amr.abstract_map = {}
+                amr.graph = parallel_sentence_amr.graph
+                amr.misc = ["# ::tok-{}".format("en") + " " + parallel_sentence_amr.sentence]
                 AMRIO.dump([amr], f)
 
 
@@ -44,14 +38,14 @@ if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser('project_train_dev.py')
     parser.add_argument('--amr_path', help='file dir from which to get AMR graphs.')
-    parser.add_argument('--trans_path', help='file dir from which to get translations.')
     parser.add_argument('--out_path', help='dump dir.')
+    parser.add_argument('--lang', help='target language')
 
     args = parser.parse_args()
 
     for split in ["dev", "train"]:
-        for lang in ["ms"]:
-            amr_file=os.path.join(args.amr_path, "{}.txt".format(split))
+        for lang in [args.lang]:
+            amr_file=os.path.join(args.amr_path, f"{split}_{lang}.pred.txt")
             out_path=args.out_path
             dataset = Dataset(amr_file, out_path, lang, split)
-            dataset.read_file_gold_amr(os.path.join(args.trans_path, "{}_{}.txt".format(split,lang)))
+            dataset.read_file_gold_amr(os.path.join(args.amr_path, f"{split}_en.pred.txt"))

@@ -1,9 +1,10 @@
 from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
+from xlamr_stog.data.dataset_readers.amr_parsing.node_utils import NodeUtilities
 
 
 class NodeRestore:
 
-    def __init__(self, node_utils):
+    def __init__(self, node_utils:NodeUtilities):
         self.node_utils = node_utils
 
     def restore_instance(self, amr):

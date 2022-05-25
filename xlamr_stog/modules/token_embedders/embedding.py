@@ -333,6 +333,9 @@ def _read_embeddings_from_text_file(file_uri: str,
                     embeddings[token[3:]] = vector
 
     if not embeddings:
+        print("TOKENS_TO_KEEP",list(tokens_to_keep)[:50])
+        print("LAST_TOKEN",token)
+        print("LAST_DIM",len(line.rstrip().split(' ')) - 1,embedding_dim)
         raise ConfigurationError("No embeddings of correct dimension found; you probably "
                                  "misspecified your embedding_dim parameter, or didn't "
                                  "pre-populate your Vocabulary")

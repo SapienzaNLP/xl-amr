@@ -18,7 +18,8 @@ from xlamr_stog.commands.evaluate import evaluate
 from xlamr_stog.metrics import dump_metrics
 
 logger = logging.init_logger()
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+if not "CUDA_VISIBLE_DEVICES" in os.environ:
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 warnings.filterwarnings("ignore")
 
 def serialize_sets(obj):
@@ -74,7 +75,7 @@ def initialize_weights(m):
     if hasattr(m, 'weight') and m.weight.dim() > 1:
         torch.nn.init.xavier_uniform_(m.weight.data)
 
-def train_model(params: Params):
+def train_model(params: Params, build_vocab_only:bool=False, vocab_dir:str=None):
     """
     Trains the model specified in the given :class:`Params` object, using the data and training
     parameters also specified in that object, and saves the results.
@@ -90,11 +91,13 @@ def train_model(params: Params):
     # Set up the environment.
     environment_params = params['environment']
     environment.set_seed(environment_params)
-    create_serialization_dir(params)
+    if not build_vocab_only:
+        create_serialization_dir(params)
     environment.prepare_global_logging(environment_params)
     environment.check_for_gpu(environment_params)
     if environment_params['gpu']:
         device = torch.device('cuda:{}'.format(environment_params['cuda_device']))
+        print(torch.cuda.get_device_name(environment_params['cuda_device']))
         environment.occupy_gpu(device)
     else:
         device = torch.device('cpu')
@@ -121,8 +124,14 @@ def train_model(params: Params):
         vocab = Vocabulary.from_instances(instances=train_data, **vocab_params)
 
     # Initializing the model can have side effect of expanding the vocabulary
-    vocab.save_to_files(os.path.join(environment_params['serialization_dir'], "vocabulary"))
+    if not build_vocab_only:
+        vocab_dir = os.path.join(environment_params['serialization_dir'], "vocabulary")
+
+    vocab.save_to_files(vocab_dir)
     train_iterator, dev_iterater, test_iterater = iterator_from_params(vocab, data_params['iterator'])
+    if build_vocab_only:
+        return
+
     if train_mappings is not None and train_replacements is not None:
         with open(os.path.join(environment_params['serialization_dir'],"trns_lex_missing.json"),"w", encoding='utf-8') as outfile:
             json.dump(train_mappings[-1], outfile, indent=4, default=serialize_sets)
@@ -130,6 +139,7 @@ def train_model(params: Params):
             json.dump(train_mappings[-2], outfile, indent=4, default=serialize_sets)
         with open(os.path.join(environment_params['serialization_dir'],"trns_rep.json"), "w", encoding='utf-8') as outfile:
             json.dump(train_replacements, outfile, indent=4, default=serialize_sets)
+    
     # Build the model.
     model_params = params['model']
     model = getattr(Models, model_params['model_type']).from_params(vocab, model_params, environment_params['gpu'], train_mappings, train_replacements)
@@ -185,9 +195,14 @@ def train_model(params: Params):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('train.py')
     parser.add_argument('params', help='Parameters YAML file.')
+    parser.add_argument('--build_vocab_only', action='store_true')
+    parser.add_argument('--vocab_dir', default="data/vocabulary")
     args = parser.parse_args()
 
     params = Params.from_file(args.params)
     logger.info(params)
 
-    train_model(params)
+    train_model(
+        params, 
+        build_vocab_only=args.build_vocab_only,
+        vocab_dir=args.vocab_dir)

@@ -228,7 +228,7 @@ class Expander:
 
 def convert_postags(lang):
     u_pos = dict()
-    with open("data/POStag/pos-conversion-table.{}".format(lang), "r") as infile:
+    with open("data/misc/pos-conversion-table.{}".format(lang), "r") as infile:
         for line in infile:
             fields = line.rstrip().split()
             u_pos[fields[0]] = fields[1]

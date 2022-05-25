@@ -181,6 +181,9 @@ class Polarity:
         lemma = self.amr.lemmas[index]
         next_lemma = self.amr.lemmas[index + 1] if index + 1 < len(self.amr.lemmas) else None
 
+        if self.amr.lang =="ms":
+            if lemma in ('non', 'no', 'tidak', 'bukan', 'anti'):
+                return True
         if self.amr.lang =="it":
             if lemma in ('non', 'no', 'senza', 'mai', 'neanche', 'ne', 'nulla', 'nessuno', 'nemmeno', 'neppure','mica'):
                 return True
@@ -495,9 +498,6 @@ class Polarity:
         lemma = self.strict_lemma_map.get(lemma, lemma)
 
         head_lemmas = [lemma]
-        if self.amr.lang != "en" and self.amr.lang+"_" + head_lemmas[0] in self.it_vocab:
-            trns_lemma_cand = self.it_vocab[self.amr.lang+"_" + head_lemmas[0]]
-            head_lemmas = [x[0][3:] for x in trns_lemma_cand if x[1]>=0.60]
         for lemma in head_lemmas:
             if self.lemma_map.get(lemma, None) == instance_lemma:
                 return True

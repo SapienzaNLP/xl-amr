@@ -10,7 +10,7 @@ class AMRIO:
         pass
 
     @staticmethod
-    def read(file_path, lang ="en", universal_postags=False, postag_map=None):
+    def read(file_path, lang ="en", universal_postags=False, postag_map=None) -> AMR:
         with open(file_path, encoding='utf-8') as f:
             amr = AMR()
             graph_lines = []

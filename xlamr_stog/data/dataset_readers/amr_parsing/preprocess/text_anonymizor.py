@@ -5,8 +5,8 @@ import string
 from typing import List, Dict, Set
 from collections import defaultdict
 
-from stog.data.dataset_readers.amr_parsing.io import AMRIO
-from stog.data.dataset_readers.amr_parsing.amr import AMR
+from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
+from xlamr_stog.data.dataset_readers.amr_parsing.amr import AMR
 from tqdm import tqdm
 
 def prev_token_is(index: int, k: int, amr: AMR, pattern: str):
@@ -190,8 +190,8 @@ class TextAnonymizor:
                     check_here=True
                 if span1 in ignored_spans or span2 in ignored_spans:
                     continue
-                if it_stopwords:
-                    if span1 in it_stopwords or span2 in it_stopwords: continue
+                if lang_stopwords:
+                    if span1 in lang_stopwords or span2 in lang_stopwords: continue
 
                 if (span1 in text_map and type(text_map[span1])==dict) or (span2 in text_map and type(text_map[span2])==dict) or (amr.lang=="zh" and span1.replace(" ","") in text_map and type(text_map[span1.replace(" ","")])==dict) or (amr.lang=="zh" and span2.replace(" ","") in text_map and type(text_map[span2.replace(" ","")])==dict):
                     if amr.lang=="zh":

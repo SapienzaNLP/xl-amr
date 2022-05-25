@@ -83,6 +83,9 @@ def prepare_global_logging(params) -> None:
 def check_for_gpu(params) -> object:
     device_id = params['cuda_device']
     if device_id is not None and device_id >= cuda.device_count():
+        print(torch.cuda.is_available())
+        print(torch.cuda.device_count())
+        print(device_id)
         raise ConfigurationError("Experiment specified a GPU but none is available;"
                                  " if you want to run on CPU use the override"
                                  " 'trainer.cuda_device=-1' in the json config file.")

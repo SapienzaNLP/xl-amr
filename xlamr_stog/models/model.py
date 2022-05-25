@@ -19,7 +19,7 @@ from xlamr_stog.utils.environment import move_to_device
 from xlamr_stog.data.dataset import Batch
 from xlamr_stog.utils.params import remove_pretrained_embedding_params
 from xlamr_stog.data.vocabulary import Vocabulary
-from xlamr_stog.stog import models as Models
+from xlamr_stog import models as Models
 
 logger = logging.init_logger(__name__)  # pylint: disable=invalid-name
 
