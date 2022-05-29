@@ -9,7 +9,7 @@ lang=$1
 model_dir=$2
 test_data=${model_dir}/test_output/test_amr.${lang}.pred.txt
 
-# spotlight_path=${util_dir}/spotlight/${lang}_test_spotlight_wiki.json
+spotlight_path=${util_dir}/spotlight/${lang}_test_spotlight_wiki.json
 
 # ========== Set the above variables correctly ==========
 
@@ -19,22 +19,23 @@ python -u -m xlamr_stog.data.dataset_readers.amr_parsing.postprocess.node_restor
     --util_dir ${util_dir}
 printf "Done.`date`\n\n"
 
-# printf "Wikification...`date`\n"
-# python -u -m xlamr_stog.data.dataset_readers.amr_parsing.postprocessfication \
-#     --amr_files ${test_data}.frame \
-#     --util_dir ${util_dir}\
-#     --spotlight_wiki $spotlight_path\
-#     --lang ${lang}
-# printf "Done.`date`\n\n"
+printf "Wikification...`date`\n"
+python -u -m xlamr_stog.data.dataset_readers.amr_parsing.postprocess.wikification \
+    --amr_files ${test_data}.frame \
+    --util_dir ${util_dir}\
+    --spotlight_wiki $spotlight_path\
+    --lang ${lang}\
+    --exclude_spotlight
+printf "Done.`date`\n\n"
 
 printf "Expanding nodes...`date`\n"
 python -u -m xlamr_stog.data.dataset_readers.amr_parsing.postprocess.expander \
-    --amr_files ${test_data}.frame \
+    --amr_files ${test_data}.frame.wiki \
     --util_dir ${util_dir} \
     --u_pos True \
     --lang ${lang}
 
 printf "Done.`date`\n\n"
 
-mv ${test_data}.frame.expand ${test_data}.postproc
+mv ${test_data}.frame.wiki.expand ${test_data}.postproc
 rm ${test_data}.frame*

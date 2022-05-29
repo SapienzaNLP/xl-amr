@@ -47,12 +47,12 @@ class Wikification:
         logger.info('Correctly wikify {}/{} name nodes.'.format(
             self.correct_wikification_count, self.name_node_count))
 
-    def wikify_file(self, file_path, lang="en"):
+    def wikify_file(self, file_path, lang="en", exclude_spotlight=False):
         for i, amr in enumerate(AMRIO.read(file_path, lang=lang)):
-            self.wikify_graph(amr)
+            self.wikify_graph(amr, exclude_spotlight=exclude_spotlight)
             yield amr
 
-    def wikify_graph(self, amr):
+    def wikify_graph(self, amr, exclude_spotlight=False):
         graph = amr.graph
         abstract_map = amr.abstract_map
         if len(abstract_map)==0: return
@@ -62,27 +62,30 @@ class Wikification:
                 saved_dict = abstract_map[instance]
                 instance_type = saved_dict['type']
                 # amr_type = graph.get_name_node_type(node)
-                cached_wiki = self._spotlight_wiki[amr.sentence]
+                cached_wiki = None
+                if not exclude_spotlight:
+                    cached_wiki = self._spotlight_wiki[amr.sentence]
                 if instance_type == 'named-entity':
                     self.name_node_count += 1
                     wiki = '-'
                     span = strip(saved_dict['span'])
                     if span.lower() in self.nationality_map:
                         country = self.nationality_map[span.lower()]
-                        wiki = self.wikify(country, cached_wiki)
+                        wiki = self.wikify(country, cached_wiki, exclude_spotlight=exclude_spotlight)
                     if wiki == '-':
-                        wiki = self.wikify(span, cached_wiki)
+                        wiki = self.wikify(span, cached_wiki, exclude_spotlight=exclude_spotlight)
                     if wiki == '-':
                         span_no_space = joint_dash(span)
-                        wiki = self.wikify(span_no_space, cached_wiki)
+                        wiki = self.wikify(span_no_space, cached_wiki, exclude_spotlight=exclude_spotlight)
                     graph.set_name_node_wiki(node, wiki)
 
 
-    def wikify(self, text, cached_wiki=None):
+    def wikify(self, text, cached_wiki=None, exclude_spotlight=False):
         text = text.lower()
         if text in self.wiki_span_cooccur_counter:
             return max(self.wiki_span_cooccur_counter[text].items(),
                        key=lambda x: (x[1], abs(len(text) - len(x[0]))))[0]
+        if exclude_spotlight: return '-'
         elif cached_wiki is not None:
             for wiki in cached_wiki.values():
                 if text == ' '.join(wiki.lower().split('_')):
@@ -101,22 +104,22 @@ class Wikification:
                                    key=lambda x: (x[1], abs(len(mention) - len(x[0]))))[0]
             return '-'
 
-    def load_utils(self):
+    def load_utils(self, exclude_spotlight=False):
         if self.lang=="en":
             wiki_path = "wiki_span_cooccur_counter.json"
         else:
             wiki_path="wiki_span_cooccur_counter_en_{}.json".format(self.lang)
         with open(os.path.join(self.util_dir, wiki_path), encoding='utf-8') as f:
             self.wiki_span_cooccur_counter = json.load(f)
-
-        with open(os.path.join(self.util_dir, args.spotlight_wiki), encoding='utf-8') as f:
-            spotlight_wiki = json.load(f)
-        self._spotlight_wiki = spotlight_wiki
-        for cached_wiki in spotlight_wiki.values():
-            for mention, wiki in cached_wiki.items():
-                if mention == 'xp':
-                    continue
-                self.spotlight_cooccur_counter[mention][wiki] += 1
+        if not exclude_spotlight:
+            with open(os.path.join(self.util_dir, args.spotlight_wiki), encoding='utf-8') as f:
+                spotlight_wiki = json.load(f)
+            self._spotlight_wiki = spotlight_wiki
+            for cached_wiki in spotlight_wiki.values():
+                for mention, wiki in cached_wiki.items():
+                    if mention == 'xp':
+                        continue
+                    self.spotlight_cooccur_counter[mention][wiki] += 1
 
         # The country list is downloaded from github:
         # https://github.com/Dinu/country-nationality-list
@@ -202,6 +205,7 @@ if __name__ == '__main__':
     parser.add_argument('--amr_files', nargs='+', default=[])
     parser.add_argument('--util_dir', required=True)
     parser.add_argument('--lang', default="en")
+    parser.add_argument('--exclude_spotlight', action='store_true',  help='Exclude spotlight and use wiki cocounter.')
     parser.add_argument('--dump_spotlight_wiki', action='store_true',  help='Use the Spotlight API to do wikification, and dump the results.')
     parser.add_argument('--spotlight_wiki',  help='Speficy wikification file for the current dataset')
     parser.add_argument('--spotlight_port', default="2222", help='Specify the port of the server running DBPedia Spotlight API')
@@ -215,8 +219,8 @@ if __name__ == '__main__':
             wikification.dump_spotlight_wiki(file_path)
 
     else:
-        wikification.load_utils()
+        wikification.load_utils(exclude_spotlight=args.exclude_spotlight)
         for file_path in args.amr_files:
             with open(file_path + '.wiki', 'w', encoding='utf-8') as f:
-                for amr in wikification.wikify_file(file_path):
+                for amr in wikification.wikify_file(file_path, exclude_spotlight=args.exclude_spotlight):
                     f.write(str(amr) + '\n\n')

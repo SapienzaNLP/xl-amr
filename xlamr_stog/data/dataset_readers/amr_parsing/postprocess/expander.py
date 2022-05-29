@@ -1,6 +1,7 @@
 import os
 import re
 import json
+from tqdm.auto import tqdm
 
 from xlamr_stog.data.dataset_readers.amr_parsing.io import AMRIO
 from xlamr_stog.data.dataset_readers.amr_parsing.amr_concepts import Polarity, Polite
@@ -35,6 +36,7 @@ class Expander:
 
     def __init__(self, util_dir, lang_vocab=None, postag_map=None, lang ="en", u_pos=False):
         self.util_dir = util_dir
+        self.translation_mapping = json.load(open("data/numberbatch/{}_en_neighbors_model.json".format(lang), "r", encoding='utf-8'))
         self.lang_vocab = lang_vocab
         self.lang = lang
         self.postag_map=postag_map
@@ -68,7 +70,7 @@ class Expander:
         logger.info('Expanded {} urls.'.format(self.url_expand_count))
 
     def expand_file(self, file_path):
-        for i, amr in enumerate(AMRIO.read(file_path, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map)):
+        for i, amr in tqdm(enumerate(AMRIO.read(file_path, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map))):
             # print(amr)
             self.expand_graph(amr)
             yield amr
@@ -112,7 +114,7 @@ class Expander:
     def restore_polarity(self, amr):
         polarity = Polarity(amr, lang_vocab=self.lang_vocab, lang=self.lang, universal_postags=self.u_pos, postag_map=self.postag_map)
         polarity.predict_polarity()
-        polarity.restore_polarity()
+        polarity.restore_polarity(self.translation_mapping)
         polite = Polite(amr)
         polite.predict_polite()
         polite.restore_polite()

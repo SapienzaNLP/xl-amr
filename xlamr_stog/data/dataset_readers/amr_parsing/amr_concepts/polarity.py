@@ -1,5 +1,5 @@
 import re
-
+import json
 
 class Polarity:
 
@@ -94,14 +94,14 @@ class Polarity:
             else:
                 self.add_special_negation(i)
 
-    def restore_polarity(self):
+    def restore_polarity(self, translation_mapping):
         negations = self.negations
         special_negations = self.special_negations
         instance_map = self.get_node_instances()
         remaining_nodes = list(self.amr.graph.get_nodes())
         for neg_index, head_index in negations:
             for instance, nodes in instance_map.items():
-                if self.is_match(head_index, instance):
+                if self.is_match(head_index, instance, translation_mapping):
                     nodes = self.sort_node_by_distance(head_index, nodes)
                     for node in nodes:
                         if node not in remaining_nodes:
@@ -182,7 +182,7 @@ class Polarity:
         next_lemma = self.amr.lemmas[index + 1] if index + 1 < len(self.amr.lemmas) else None
 
         if self.amr.lang =="ms":
-            if lemma in ('non', 'no', 'tidak', 'bukan', 'anti'):
+            if lemma in ('non', 'no', 'tidak', 'bukan', 'bukankah', 'anti', 'jangan', 'tanpa', 'tak', 'tapi'):
                 return True
         if self.amr.lang =="it":
             if lemma in ('non', 'no', 'senza', 'mai', 'neanche', 'ne', 'nulla', 'nessuno', 'nemmeno', 'neppure','mica'):
@@ -260,7 +260,7 @@ class Polarity:
         return True
 
     def get_head(self, index):
-        if self.amr.lang=="zh":
+        if self.amr.lang in ["zh", "ms"]:
             return index+1
         else:
             head = self.get_special_head(index)
@@ -492,13 +492,39 @@ class Polarity:
                 continue
         return recall_count, len(self.nodes)
 
-    def is_match(self, index, instance):
+    def closest_in_emb_space(self, t, tgt_token, translation_mapping):
+        match = False
+        lang_token =self.lang+"_"+t
+        tk = ""
+        if lang_token in translation_mapping:
+            tk = lang_token
+        elif lang_token.lower() in translation_mapping:
+            tk = lang_token.lower()
+        if tk != "":
+            if len(translation_mapping[tk]) > 0:
+                for neighbor in range(len(translation_mapping[tk])):
+                    en_token, sim = translation_mapping[tk][neighbor]
+                    if sim >=0.60:
+                        tr_token = en_token[3:]
+
+                        if tgt_token == tr_token:
+                            match = True
+                            break
+        return match
+
+    def is_match(self, index, instance, translation_mapping):
         instance_lemma = re.sub('-\d\d$', '', instance)
-        lemma = self.amr.lemmas[index] if isinstance(index, int) else index
+        try:
+            lemma = self.amr.lemmas[index] if isinstance(index, int) else index
+        except Exception as e:
+            # print(self.amr.sentence)
+            return False
         lemma = self.strict_lemma_map.get(lemma, lemma)
 
         head_lemmas = [lemma]
         for lemma in head_lemmas:
+            if self.closest_in_emb_space(lemma,instance_lemma, translation_mapping):
+                return True
             if self.lemma_map.get(lemma, None) == instance_lemma:
                 return True
             if lemma == instance_lemma:
