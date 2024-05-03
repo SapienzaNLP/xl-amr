@@ -20,7 +20,7 @@ networkx
 spicy
 stanza
 ipython
-tqdm==4.46.1
+tqdm==4.66.3
 
 tensorboardX==1.2
 boto3==1.12.29
